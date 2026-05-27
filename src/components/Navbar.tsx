@@ -14,12 +14,17 @@ export function Navbar() {
           <a href="#education" className="hover:text-foreground transition">Hormones</a>
           <a href="#faq" className="hover:text-foreground transition">FAQ</a>
         </nav>
-        <a
-          href="#waitlist"
-          className="text-sm px-4 py-2 rounded-full bg-primary text-primary-foreground hover:opacity-90 transition shadow-soft"
-        >
-          Join waitlist
-        </a>
+        <div className="flex items-center gap-3">
+          <Link to="/auth" className="text-sm text-muted-foreground hover:text-foreground transition hidden sm:inline">
+            Sign in
+          </Link>
+          <Link
+            to="/auth"
+            className="text-sm px-4 py-2 rounded-full bg-primary text-primary-foreground hover:opacity-90 transition shadow-soft"
+          >
+            Get started
+          </Link>
+        </div>
       </div>
     </header>
   );
