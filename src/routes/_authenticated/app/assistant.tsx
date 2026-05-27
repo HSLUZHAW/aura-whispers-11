@@ -24,7 +24,8 @@ function AssistantPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-
+const lang = detectLanguage();
+const emptyState = getEmptyStateText(lang);
   const { data: profile } = useQuery({
     queryKey: ["profile"],
     queryFn: async () => {
@@ -96,21 +97,26 @@ function AssistantPage() {
       </header>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-4 pb-4">
-        {messages.length === 0 && (
-          <div className="text-center py-10">
-            <div className="w-16 h-16 mx-auto rounded-full bg-gradient-hero shadow-glow mb-4 animate-float-slow" />
-            <p className="font-display text-xl mb-2">I'm here, and I'm listening.</p>
-            <p className="text-sm text-muted-foreground mb-6">Ask me anything about your body, mood or cycle.</p>
-            <div className="flex flex-col gap-2 max-w-sm mx-auto">
-              {SUGGESTIONS.map((s) => (
-                <button key={s} onClick={() => send(s)}
-                  className="text-left text-sm px-4 py-3 rounded-2xl bg-card border border-border/60 hover:border-clay/50 transition">
-                  {s}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+    {messages.length === 0 && (
+  <div className="text-center py-10">
+    <div className="w-16 h-16 mx-auto rounded-full bg-gradient-hero shadow-glow mb-4 animate-float-slow" />
+    <p className="font-display text-xl mb-2">{emptyState.title}</p>
+    <p className="text-sm text-muted-foreground mb-6">{emptyState.subtitle}</p>
+    <div className="flex flex-col gap-2 max-w-sm mx-auto">
+      {getDynamicSuggestions(
+        profile
+          ? getCycleInfo(profile.last_period_date, profile.cycle_length ?? 28, profile.period_length ?? 5).phase as any
+          : null,
+        lang,
+      ).map((s) => (
+        <button key={s} onClick={() => send(s)}
+          className="text-left text-sm px-4 py-3 rounded-2xl bg-card border border-border/60 hover:border-clay/50 transition">
+          {s}
+        </button>
+      ))}
+    </div>
+  </div>
+)}
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
             <div className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
