@@ -7,18 +7,14 @@ import { Sparkles, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { askLunara } from "@/lib/ai.functions";
 import { getCycleInfo } from "@/lib/cycle";
+import { getDynamicSuggestions, getEmptyStateText, detectLanguage } from "@/lib/suggestions";
 
 export const Route = createFileRoute("/_authenticated/app/assistant")({
   head: () => ({ meta: [{ title: "Lunara — AI Companion" }] }),
   component: AssistantPage,
 });
 
-const SUGGESTIONS = [
-  "Why am I emotionally sensitive today?",
-  "What workouts fit my current phase?",
-  "Why am I craving sugar?",
-  "How can I support my hormones naturally?",
-];
+
 
 type Msg = { role: "user" | "assistant"; content: string };
 
