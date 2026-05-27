@@ -14,7 +14,174 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      ai_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      cycle_events: {
+        Row: {
+          created_at: string
+          event_date: string
+          event_type: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_date: string
+          event_type: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_date?: string
+          event_type?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      daily_logs: {
+        Row: {
+          cravings: string[] | null
+          created_at: string
+          energy: number | null
+          id: string
+          libido: number | null
+          log_date: string
+          mood: number | null
+          notes: string | null
+          skin: string | null
+          sleep_hours: number | null
+          stress: number | null
+          symptoms: string[] | null
+          updated_at: string
+          user_id: string
+          workout: string | null
+        }
+        Insert: {
+          cravings?: string[] | null
+          created_at?: string
+          energy?: number | null
+          id?: string
+          libido?: number | null
+          log_date?: string
+          mood?: number | null
+          notes?: string | null
+          skin?: string | null
+          sleep_hours?: number | null
+          stress?: number | null
+          symptoms?: string[] | null
+          updated_at?: string
+          user_id: string
+          workout?: string | null
+        }
+        Update: {
+          cravings?: string[] | null
+          created_at?: string
+          energy?: number | null
+          id?: string
+          libido?: number | null
+          log_date?: string
+          mood?: number | null
+          notes?: string | null
+          skin?: string | null
+          sleep_hours?: number | null
+          stress?: number | null
+          symptoms?: string[] | null
+          updated_at?: string
+          user_id?: string
+          workout?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          age: number | null
+          contraceptive: string | null
+          created_at: string
+          cycle_length: number | null
+          display_name: string | null
+          fitness_goal: string | null
+          health_goals: string[] | null
+          id: string
+          last_period_date: string | null
+          mood_tendencies: string[] | null
+          nutrition_habits: string | null
+          onboarded: boolean | null
+          partner_insights_enabled: boolean | null
+          period_length: number | null
+          relationship_status: string | null
+          sleep_quality: string | null
+          stress_level: string | null
+          symptoms: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          age?: number | null
+          contraceptive?: string | null
+          created_at?: string
+          cycle_length?: number | null
+          display_name?: string | null
+          fitness_goal?: string | null
+          health_goals?: string[] | null
+          id: string
+          last_period_date?: string | null
+          mood_tendencies?: string[] | null
+          nutrition_habits?: string | null
+          onboarded?: boolean | null
+          partner_insights_enabled?: boolean | null
+          period_length?: number | null
+          relationship_status?: string | null
+          sleep_quality?: string | null
+          stress_level?: string | null
+          symptoms?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          age?: number | null
+          contraceptive?: string | null
+          created_at?: string
+          cycle_length?: number | null
+          display_name?: string | null
+          fitness_goal?: string | null
+          health_goals?: string[] | null
+          id?: string
+          last_period_date?: string | null
+          mood_tendencies?: string[] | null
+          nutrition_habits?: string | null
+          onboarded?: boolean | null
+          partner_insights_enabled?: boolean | null
+          period_length?: number | null
+          relationship_status?: string | null
+          sleep_quality?: string | null
+          stress_level?: string | null
+          symptoms?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
