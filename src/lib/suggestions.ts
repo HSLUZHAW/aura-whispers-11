@@ -3,18 +3,17 @@
  * Picks 4 questions based on:
  *  - current cycle phase
  *  - current time of day
- *  - browser language (de / en)
+ *  - app language (de / en)
  */
 
-type Phase = "menstruation" | "follicular" | "ovulation" | "luteal";
+import { getLanguage } from "@/lib/language";
+
+type Phase = "Menstrual" | "Follicular" | "Ovulatory" | "Luteal";
 type TimeOfDay = "morning" | "midday" | "evening" | "night";
-type Lang = "de" | "en";
 
 // ---------- Language detection ----------
-export function detectLanguage(): Lang {
-  if (typeof navigator === "undefined") return "en";
-  const browserLang = navigator.language.toLowerCase();
-  return browserLang.startsWith("de") ? "de" : "en";
+export function detectLanguage() {
+  return getLanguage();
 }
 
 // ---------- Time of day ----------
@@ -27,8 +26,8 @@ function getTimeOfDay(date = new Date()): TimeOfDay {
 }
 
 // ---------- Phase-based suggestions ----------
-const PHASE_SUGGESTIONS: Record<Phase, Record<Lang, string[]>> = {
-  menstruation: {
+const PHASE_SUGGESTIONS: Record<Phase, Record<string, string[]>> = {
+  Menstrual: {
     de: [
       "Wie lindere ich Krämpfe auf natürliche Weise?",
       "Welche Lebensmittel helfen mir während der Periode?",
@@ -42,7 +41,7 @@ const PHASE_SUGGESTIONS: Record<Phase, Record<Lang, string[]>> = {
       "Why do I feel so drained right now?",
     ],
   },
-  follicular: {
+  Follicular: {
     de: [
       "Welche Workouts passen jetzt zu meinem Körper?",
       "Wie nutze ich meine wachsende Energie am besten?",
@@ -56,7 +55,7 @@ const PHASE_SUGGESTIONS: Record<Phase, Record<Lang, string[]>> = {
       "What should I eat during this phase?",
     ],
   },
-  ovulation: {
+  Ovulatory: {
     de: [
       "Warum fühle ich mich heute so selbstbewusst?",
       "Wie unterstütze ich meinen Körper während der Ovulation?",
@@ -70,7 +69,7 @@ const PHASE_SUGGESTIONS: Record<Phase, Record<Lang, string[]>> = {
       "Why is my libido so high lately?",
     ],
   },
-  luteal: {
+  Luteal: {
     de: [
       "Warum bin ich heute emotional empfindlich?",
       "Wieso habe ich gerade Heißhunger?",
@@ -87,7 +86,7 @@ const PHASE_SUGGESTIONS: Record<Phase, Record<Lang, string[]>> = {
 };
 
 // ---------- Time-based suggestions ----------
-const TIME_SUGGESTIONS: Record<TimeOfDay, Record<Lang, string[]>> = {
+const TIME_SUGGESTIONS: Record<TimeOfDay, Record<string, string[]>> = {
   morning: {
     de: [
       "Wie starte ich heute kraftvoll in den Tag?",
@@ -131,7 +130,7 @@ const TIME_SUGGESTIONS: Record<TimeOfDay, Record<Lang, string[]>> = {
 };
 
 // ---------- Empty state text (also localized) ----------
-export function getEmptyStateText(lang: Lang = detectLanguage()) {
+export function getEmptyStateText(lang: string = detectLanguage()) {
   if (lang === "de") {
     return {
       title: "Ich bin hier, und ich höre dir zu.",
@@ -147,16 +146,16 @@ export function getEmptyStateText(lang: Lang = detectLanguage()) {
 // ---------- Main function ----------
 export function getDynamicSuggestions(
   phase: Phase | null | undefined,
-  lang: Lang = detectLanguage(),
+  lang: string = detectLanguage(),
   now: Date = new Date(),
 ): string[] {
   const time = getTimeOfDay(now);
 
   // Fallback if no phase known yet (no period date entered)
-  const safePhase: Phase = phase ?? "follicular";
+  const safePhase: Phase = phase ?? "Follicular";
 
-  const phasePool = PHASE_SUGGESTIONS[safePhase][lang];
-  const timePool = TIME_SUGGESTIONS[time][lang];
+  const phasePool = PHASE_SUGGESTIONS[safePhase][lang] || PHASE_SUGGESTIONS[safePhase]["en"];
+  const timePool = TIME_SUGGESTIONS[time][lang] || TIME_SUGGESTIONS[time]["en"];
 
   // 2 from phase, 2 from time, deduplicated
   const picked = [
