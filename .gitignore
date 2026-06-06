@@ -30,3 +30,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Prevent HTML files from being committed (except in public/)
+*.html
+!public/**/*.html
