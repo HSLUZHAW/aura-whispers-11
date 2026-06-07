@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Health Library: Lunara</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;1,300;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="lunara.css" />
+  <style>
+    /* ── Health Library page-specific styles ── */
+
+    /* Hero */
+    .lib-hero {
+      position: relative; padding: 5rem 1.5rem 3.5rem;
+      overflow: hidden; text-align: center;
+    }
+    .lib-hero-aurora {
+      position: absolute; inset: 0;
+      background-image: var(--gradient-aurora); opacity: 0.55; pointer-events: none;
+    }
+    .lib-hero-inner { position: relative; max-width: 48rem; margin: 0 auto; }
+    .lib-eyebrow {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.2em;
+      color: var(--muted-foreground); margin-bottom: 1.25rem;
+    }
+    .lib-eyebrow-dot { width: 6px; height: 6px; border-radius: 9999px; background-color: var(--blush); }
+    .lib-hero h1 { font-size: clamp(2.5rem, 5vw, 3.75rem); line-height: 1.08; margin-bottom: 1.25rem; }
+    .lib-hero p { font-size: 1.0625rem; color: var(--muted-foreground); max-width: 40rem; margin: 0 auto 2.5rem; line-height: 1.75; }
+
+    /* Search */
+    .search-wrap { max-width: 44rem; margin: 0 auto 1rem; position: relative; }
+    .search-input {
+      width: 100%; padding: 0.9rem 1.25rem 0.9rem 3rem;
+      border-radius: 9999px; border: 1.5px solid var(--border);
+      background-color: var(--card); font-family: 'Inter', sans-serif;
+      font-size: 0.9375rem; color: var(--foreground); outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s; box-shadow: var(--shadow-soft);
+    }
+    .search-input:focus { border-color: var(--blush); box-shadow: 0 0 0 3px rgba(232,168,152,0.18); }
+    .search-input::placeholder { color: var(--muted-foreground); }
+    .search-icon {
+      position: absolute; left: 1.1rem; top: 50%; transform: translateY(-50%);
+      color: var(--muted-foreground); pointer-events: none; font-size: 1rem;
+    }
+    .search-clear {
+      position: absolute; right: 1rem; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: var(--muted-foreground);
+      font-size: 1.1rem; line-height: 1; display: none; transition: color 0.15s;
+    }
+    .search-clear:hover { color: var(--foreground); }
+    .search-clear.visible { display: block; }
+
+    /* Pills */
+    .pills-row {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem;
+      max-width: 44rem; margin: 0 auto;
+    }
+    .pill {
+      padding: 0.4rem 1.1rem; border-radius: 9999px;
+      border: 1.5px solid var(--border); background-color: var(--card);
+      font-size: 0.8125rem; color: var(--muted-foreground); transition: all 0.18s;
+    }
+    .pill:hover { border-color: var(--blush); color: var(--foreground); }
+    .pill.active {
+      background-color: var(--primary); color: var(--primary-foreground);
+      border-color: var(--primary); box-shadow: var(--shadow-soft);
+    }
+
+    /* Layout */
+    .page-layout {
+      max-width: 72rem; margin: 0 auto; padding: 2.5rem 1.5rem 5rem;
+      display: grid; grid-template-columns: 13rem 1fr; gap: 2rem; align-items: start;
+    }
+    @media (max-width: 900px) { .page-layout { grid-template-columns: 1fr; } }
+
+    /* Sidebar */
+    .sidebar {
+      position: sticky; top: 5.5rem; background-color: var(--card);
+      border: 1px solid rgba(232,224,212,0.7); border-radius: 1.25rem;
+      padding: 1.25rem 0; box-shadow: var(--shadow-soft);
+      max-height: calc(100vh - 7rem); overflow-y: auto;
+    }
+    .sidebar-title {
+      font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.18em;
+      color: var(--muted-foreground); padding: 0 1.25rem 0.75rem;
+    }
+    .sidebar-item {
+      display: flex; align-items: center; gap: 0.6rem;
+      padding: 0.55rem 1.25rem; font-size: 0.8125rem; color: var(--muted-foreground);
+      transition: all 0.15s; border-left: 2px solid transparent;
+    }
+    .sidebar-item:hover { color: var(--foreground); background-color: var(--muted); }
+    .sidebar-item.active { color: var(--clay); border-left-color: var(--clay); background-color: rgba(154,96,80,0.06); }
+    .sidebar-icon { font-size: 0.875rem; flex-shrink: 0; }
+    @media (max-width: 900px) { .sidebar { display: none; } }
+
+    /* No results */
+    .no-results { display: none; text-align: center; padding: 4rem 2rem; color: var(--muted-foreground); }
+    .no-results.visible { display: block; }
+    .no-results-title { font-family: 'Fraunces', serif; font-size: 1.5rem; margin-bottom: 0.5rem; }
+
+    /* Cards */
+    .cards-col { display: flex; flex-direction: column; gap: 1rem; }
+    .condition-card {
+      background-color: var(--card); border: 1.5px solid rgba(232,224,212,0.7);
+      border-radius: 1.5rem; overflow: hidden;
+      box-shadow: var(--shadow-soft); transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .condition-card:hover { border-color: rgba(232,168,152,0.5); }
+    .condition-card.open { border-color: rgba(232,168,152,0.7); box-shadow: 0 4px 40px rgba(60,40,30,0.1); }
+    .condition-card.hidden { display: none; }
+
+    .card-header {
+      display: flex; align-items: flex-start; gap: 1rem;
+      padding: 1.5rem; cursor: pointer; user-select: none;
+    }
+    .card-icon {
+      font-size: 1.5rem; flex-shrink: 0; width: 2.75rem; height: 2.75rem;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 0.875rem; background-image: var(--gradient-soft);
+    }
+    .card-meta { flex: 1; min-width: 0; }
+    .card-category {
+      font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.18em;
+      color: var(--clay); margin-bottom: 0.3rem;
+    }
+    .card-title { font-size: 1.25rem; line-height: 1.2; margin-bottom: 0.4rem; }
+    .card-subtitle { font-size: 0.875rem; color: var(--muted-foreground); line-height: 1.55; }
+    .card-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.75rem; }
+    .tag {
+      font-size: 0.7rem; padding: 0.2rem 0.65rem; border-radius: 9999px;
+      background-color: var(--muted); color: var(--muted-foreground); border: 1px solid var(--border);
+    }
+    .card-toggle {
+      flex-shrink: 0; width: 2rem; height: 2rem; border-radius: 9999px;
+      border: 1.5px solid var(--border); background: none; color: var(--clay);
+      font-size: 1.25rem; line-height: 1; display: flex; align-items: center; justify-content: center;
+      transition: transform 0.25s, background-color 0.2s, border-color 0.2s;
+    }
+    .card-toggle:hover { background-color: var(--muted); border-color: var(--blush); }
+    .condition-card.open .card-toggle { transform: rotate(45deg); background-color: rgba(154,96,80,0.08); border-color: var(--clay); }
+
+    .card-body { display: none; padding: 0 1.5rem 1.75rem; }
+    .condition-card.open .card-body { display: block; }
+    .card-divider { height: 1px; background-color: var(--border); margin-bottom: 1.75rem; }
+
+    .section-label {
+      font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.18em;
+      color: var(--muted-foreground); margin-bottom: 0.6rem;
+    }
+    .body-text { font-size: 0.9rem; color: #5a4840; line-height: 1.75; margin-bottom: 1.25rem; }
+
+    /* Stat badges */
+    .stat-row { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem; }
+    .stat-badge {
+      padding: 0.6rem 1rem; border-radius: 0.875rem;
+      background-color: rgba(232,168,152,0.15); border: 1px solid rgba(232,168,152,0.3); text-align: center;
+    }
+    .stat-badge .stat-num { font-family: 'Fraunces', serif; font-size: 1.3rem; color: var(--clay); display: block; line-height: 1.1; }
+    .stat-badge .stat-label { font-size: 0.7rem; color: var(--muted-foreground); }
+
+    /* Info boxes */
+    .info-box {
+      padding: 1rem 1.125rem; border-radius: 0.875rem; border-left: 3px solid;
+      margin-bottom: 1.25rem; font-size: 0.875rem; line-height: 1.65;
+    }
+    .info-box.insight { background-color: rgba(196,184,216,0.18); border-color: var(--lavender); color: #4a3a5a; }
+    .info-box.warning { background-color: rgba(236,222,200,0.45); border-color: #c8a870; color: #5a4820; }
+    .info-box.stat    { background-color: rgba(232,168,152,0.15); border-color: var(--blush); color: #6a3a30; }
+    .info-box-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.15em; font-weight: 600; margin-bottom: 0.4rem; opacity: 0.75; }
+
+    /* Symptoms grid */
+    .symptoms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1.5rem; }
+    @media (max-width: 480px) { .symptoms-grid { grid-template-columns: 1fr; } }
+    .symptom-item {
+      display: flex; align-items: flex-start; gap: 0.55rem;
+      font-size: 0.85rem; color: #5a4840; padding: 0.45rem 0.6rem;
+      border-radius: 0.5rem; background-color: var(--muted);
+    }
+    .symptom-dot { width: 8px; height: 8px; border-radius: 9999px; flex-shrink: 0; margin-top: 0.35rem; }
+
+    /* Doctor questions */
+    .questions-list { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.5rem; }
+    .question-item {
+      display: flex; gap: 0.75rem; align-items: flex-start;
+      padding: 0.75rem 1rem; border-radius: 0.875rem;
+      background-color: rgba(196,184,216,0.12); border: 1px solid rgba(196,184,216,0.3);
+      font-size: 0.875rem; color: #4a3a5a; line-height: 1.55;
+    }
+    .question-mark { font-family: 'Fraunces', serif; font-size: 1.1rem; color: var(--lavender); flex-shrink: 0; line-height: 1.3; }
+
+    /* Comparison table */
+    .compare-table-wrap { overflow-x: auto; margin-bottom: 1.5rem; }
+    .compare-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .compare-table th {
+      font-family: 'Fraunces', serif; font-weight: 400; font-size: 0.875rem;
+      text-align: left; padding: 0.6rem 0.875rem;
+      background-color: var(--muted); border: 1px solid var(--border); color: var(--foreground);
+    }
+    .compare-table td {
+      padding: 0.6rem 0.875rem; border: 1px solid var(--border);
+      vertical-align: top; color: #5a4840; line-height: 1.55;
+    }
+    .compare-table tr:nth-child(even) td { background-color: rgba(242,237,232,0.4); }
+
+    .subsection { margin-bottom: 1.75rem; }
+
+    /* Card disclaimer */
+    .card-disclaimer {
+      margin-top: 1.75rem; padding: 1rem 1.125rem; border-radius: 0.875rem;
+      border: 1px solid var(--border); background-color: var(--muted);
+      font-size: 0.825rem; color: var(--muted-foreground); line-height: 1.65; font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Navbar ── -->
+  <header class="navbar">
+    <div class="navbar-inner">
+      <a href="preview.html" class="logo">
+        <span class="logo-dot"></span>
+        <span class="logo-name">Lunara</span>
+      </a>
+      <nav class="nav-links">
+        <a href="preview.html#features">Features</a>
+        <a href="preview.html#cycle">Cycle</a>
+        <a href="preview.html#education">Hormones</a>
+        <a href="health-library.html" class="active">Health Library</a>
+        <a href="preview.html#faq">FAQ</a>
+      </nav>
+      <div class="nav-actions">
+        <a href="preview.html#waitlist" class="btn-ghost">Sign in</a>
+        <a href="preview.html#waitlist" class="btn-primary-nav">Get started</a>
+        <button class="nav-mobile-btn" aria-label="Menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+    <nav class="mobile-drawer">
+      <a href="preview.html#features">Features</a>
+      <a href="preview.html#cycle">Cycle</a>
+      <a href="preview.html#education">Hormones</a>
+      <a href="health-library.html" class="active">Health Library</a>
+      <a href="preview.html#faq">FAQ</a>
+      <a href="preview.html#waitlist">Get started</a>
+    </nav>
+  </header>
+
+  <!-- ── Disclaimer Banner ── -->
+  <div class="disclaimer-banner" style="margin-top:4rem">
+    <p><strong>Educational purposes only.</strong> This library provides general health information based on current research. It is not a substitute for professional medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider before making any health decisions.</p>
+  </div>
+
+  <!-- ── Hero ── -->
+  <section class="lib-hero">
+    <div class="lib-hero-aurora"></div>
+    <div class="lib-hero-inner">
+      <div class="lib-eyebrow"><span class="lib-eyebrow-dot"></span>Health Library</div>
+      <h1>Understanding your body, clearly.</h1>
+      <p>Science-backed information on the conditions and topics that affect women most. Explained with honesty, without judgment, and up to date with current research.</p>
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" id="searchInput" type="text" placeholder="Search conditions, symptoms, keywords…" autocomplete="off" />
+        <button class="search-clear" id="searchClear" aria-label="Clear search">✕</button>
+      </div>
+      <div class="pills-row" id="pillsRow">
+        <button class="pill active" data-filter="all">All topics</button>
+        <button class="pill" data-filter="cycle">Cycle disorders</button>
+        <button class="pill" data-filter="hormones">Hormones</button>
+        <button class="pill" data-filter="contraception">Contraception</button>
+        <button class="pill" data-filter="menopause">Menopause</button>
+        <button class="pill" data-filter="thyroid">Thyroid</button>
+        <button class="pill" data-filter="uterine">Uterine</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Main layout ── -->
+  <div class="page-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-title">Conditions</div>
+      <a class="sidebar-item" href="#card-pms"     data-target="card-pms"><span class="sidebar-icon">🌙</span>PMS &amp; PMDD</a>
+      <a class="sidebar-item" href="#card-pcos"    data-target="card-pcos"><span class="sidebar-icon">⚡</span>PCOS</a>
+      <a class="sidebar-item" href="#card-endo"    data-target="card-endo"><span class="sidebar-icon">🔴</span>Endometriosis</a>
+      <a class="sidebar-item" href="#card-meno"    data-target="card-meno"><span class="sidebar-icon">🌅</span>Perimenopause &amp; Menopause</a>
+      <a class="sidebar-item" href="#card-thyroid" data-target="card-thyroid"><span class="sidebar-icon">🦋</span>Thyroid Health</a>
+      <a class="sidebar-item" href="#card-contra"  data-target="card-contra"><span class="sidebar-icon">💙</span>Hormonal Contraception</a>
+      <a class="sidebar-item" href="#card-adeno"   data-target="card-adeno"><span class="sidebar-icon">🫧</span>Adenomyosis</a>
+      <a class="sidebar-item" href="#card-fibroids" data-target="card-fibroids"><span class="sidebar-icon">🌊</span>Uterine Fibroids</a>
+    </aside>
+
+    <main>
+      <div class="no-results" id="noResults">
+        <div class="no-results-title">No results found</div>
+        <p>Try a different search term or browse by category.</p>
+      </div>
+      <div class="cards-col" id="cardsCol">
+
+
+        <!-- CARD 1: PMS & PMDD -->
+        <div class="condition-card open" id="card-pms" data-categories="cycle hormones" data-search="pms pmdd premenstrual syndrome mood luteal serotonin bloating irritability headache fatigue anxiety depression">
+          <div class="card-header" onclick="toggleCard('card-pms')">
+            <div class="card-icon">🌙</div>
+            <div class="card-meta">
+              <div class="card-category">Cycle disorder</div>
+              <h2 class="card-title">PMS &amp; PMDD</h2>
+              <p class="card-subtitle">Premenstrual syndrome and its severe form, PMDD. Why they happen, what the difference is, and what you can bring to your doctor.</p>
+              <div class="card-tags"><span class="tag">Luteal phase</span><span class="tag">Mood</span><span class="tag">Hormones</span><span class="tag">Serotonin</span></div>
+            </div>
+            <button class="card-toggle" aria-label="Toggle">+</button>
+          </div>
+          <div class="card-body">
+            <div class="card-divider"></div>
+            <div class="subsection">
+              <div class="section-label">What is it</div>
+              <p class="body-text">PMS appears in the luteal phase, the two weeks before a period, and disappears once menstruation begins. PMDD is the severe form, classified as a distinct mood disorder since 2013. The distinction matters: PMS causes discomfort, while PMDD causes significant disruption to daily life, relationships, and work.</p>
+              <div class="stat-row">
+                <div class="stat-badge"><span class="stat-num">~50%</span><span class="stat-label">experience PMS</span></div>
+                <div class="stat-badge"><span class="stat-num">3–8%</span><span class="stat-label">experience PMDD</span></div>
+              </div>
+            </div>
+            <div class="subsection">
+              <div class="section-label">What causes it</div>
+              <p class="body-text">The root is an abnormal brain sensitivity to normal hormonal fluctuations, particularly the drop in estrogen and progesterone at the end of the luteal phase. Research published in 2023 found that a key part of the serotonin system responds differently in people with PMDD compared to those without it. This is a neurobiological difference, not a personality trait or emotional weakness. Genetic factors and stress history also play a role.</p>
+              <div class="info-box insight">
+                <div class="info-box-label">Worth knowing</div>
+                PMDD is not a matter of being "too sensitive." It is a condition rooted in how the brain processes hormonal signals. Recognising that distinction is often the first step toward getting the right support.
+              </div>
+            </div>
+            <div class="subsection">
+              <div class="section-label">Symptoms</div>
+              <div class="symptoms-grid">
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--blush)"></span>Mood swings, irritability, anger</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--blush)"></span>Anxiety or feeling overwhelmed</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--lavender)"></span>Depression or hopelessness (PMDD)</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--lavender)"></span>Brain fog, difficulty concentrating</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--sand)"></span>Bloating and water retention</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--sand)"></span>Breast tenderness</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--blush)"></span>Headaches or migraines</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--lavender)"></span>Fatigue and sleep disruption</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--sand)"></span>Food cravings, especially carbs or sugar</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--lavender)"></span>Withdrawing from daily activities</div>
+              </div>
+            </div>
+            <div class="subsection">
+              <div class="section-label">What doctors look at</div>
+              <p class="body-text">Doctors will generally want to understand the pattern and severity of your symptoms over time, which is why tracking them across at least two cycles is often the starting point. From there, approaches vary depending on your situation. Some focus on the hormonal cycle itself, others on how the brain responds to hormonal shifts. Lifestyle factors like sleep, movement, and nutrition are often part of the conversation too.</p>
+            </div>
+            <div class="subsection">
+              <div class="section-label">Questions to ask your doctor</div>
+              <div class="questions-list">
+                <div class="question-item"><span class="question-mark">"</span>Based on my symptoms, do you think this is PMS or could it be PMDD?</div>
+                <div class="question-item"><span class="question-mark">"</span>What would you want me to track before our next appointment, and for how long?</div>
+                <div class="question-item"><span class="question-mark">"</span>Are there lifestyle changes that tend to help with the type of symptoms I'm describing?</div>
+                <div class="question-item"><span class="question-mark">"</span>What are the main approaches available to me, and what are the differences between them?</div>
+                <div class="question-item"><span class="question-mark">"</span>If my symptoms are affecting my relationships or work, does that change what we consider?</div>
+              </div>
+              <div class="info-box warning">
+                <div class="info-box-label">Important</div>
+                If premenstrual symptoms are significantly affecting your daily life, or if you ever experience thoughts of self-harm, please speak with a doctor. This is a recognised condition with effective support available.
+              </div>
+            </div>
+            <div class="card-disclaimer">The information here is meant to help you understand your body and feel more prepared for conversations with your healthcare provider. It is not medical advice, and your doctor is always the right person to guide your personal health decisions.</div>
+          </div>
+        </div>
+
+
+        <!-- CARD 2: PCOS -->
+        <div class="condition-card" id="card-pcos" data-categories="cycle hormones" data-search="pcos polycystic ovary syndrome androgens insulin resistance irregular cycles fertility acne hair loss weight">
+          <div class="card-header" onclick="toggleCard('card-pcos')">
+            <div class="card-icon">⚡</div>
+            <div class="card-meta">
+              <div class="card-category">Hormonal disorder</div>
+              <h2 class="card-title">PCOS</h2>
+              <p class="card-subtitle">Polycystic Ovary Syndrome. One of the most common hormonal conditions, yet one of the most misunderstood.</p>
+              <div class="card-tags"><span class="tag">Androgens</span><span class="tag">Insulin resistance</span><span class="tag">Irregular cycles</span><span class="tag">Fertility</span></div>
+            </div>
+            <button class="card-toggle" aria-label="Toggle">+</button>
+          </div>
+          <div class="card-body">
+            <div class="card-divider"></div>
+            <div class="subsection">
+              <div class="section-label">What is it</div>
+              <p class="body-text">PCOS is a hormonal condition characterised by elevated androgens, irregular or absent ovulation, and often multiple underdeveloped follicles on the ovaries. Not everyone with PCOS has visible cysts, and the name is a little misleading because of this. Diagnosis is based on a combination of criteria, not on imaging alone.</p>
+              <div class="stat-row">
+                <div class="stat-badge"><span class="stat-num">1 in 10</span><span class="stat-label">women worldwide</span></div>
+                <div class="stat-badge"><span class="stat-num">~70%</span><span class="stat-label">go undiagnosed</span></div>
+              </div>
+            </div>
+            <div class="subsection">
+              <div class="section-label">What causes it</div>
+              <p class="body-text">PCOS tends to involve a combination of genetic predisposition, insulin resistance, and low-grade inflammation. When insulin levels are elevated, the ovaries can respond by producing more androgens. This disrupts the development of follicles and makes regular ovulation harder. The result is a cascade of symptoms that can look very different from person to person.</p>
+              <div class="info-box insight">
+                <div class="info-box-label">Worth knowing</div>
+                PCOS is not one condition with one presentation. Some women experience it mainly through metabolic symptoms, others through androgenic ones like acne or hair growth, and others primarily through irregular cycles. Your experience is valid even if it looks different from someone else's.
+              </div>
+            </div>
+            <div class="subsection">
+              <div class="section-label">Symptoms</div>
+              <div class="symptoms-grid">
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--blush)"></span>Irregular, infrequent, or absent periods</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--blush)"></span>Excess hair growth on face, chest, or back</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--sand)"></span>Acne that does not respond to usual approaches</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--sand)"></span>Hair thinning at the crown</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--lavender)"></span>Weight gain around the midsection</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--lavender)"></span>Difficulty losing weight</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--sand)"></span>Darkened skin patches</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--blush)"></span>Difficulty conceiving</div>
+              </div>
+            </div>
+            <div class="subsection">
+              <div class="section-label">What doctors look at</div>
+              <p class="body-text">Because PCOS presents so differently, doctors will usually look at the full picture before suggesting any path forward. Blood tests to check hormone levels and how your body handles blood sugar are common early steps. From there, the approach depends on which symptoms are most present. Women focused on cycle regulation, androgenic symptoms, metabolic health, or fertility may be guided toward quite different conversations. Many women find that movement and nutrition changes make a meaningful difference, and this is often explored early in care.</p>
+              <div class="info-box stat">
+                <div class="info-box-label">Long-term awareness</div>
+                Untreated PCOS is associated with a higher risk of type 2 diabetes, cardiovascular changes, and endometrial concerns over time. Regular check-ins with a doctor matter, even when symptoms feel manageable.
+              </div>
+            </div>
+            <div class="subsection">
+              <div class="section-label">Questions to ask your doctor</div>
+              <div class="questions-list">
+                <div class="question-item"><span class="question-mark">"</span>What type of PCOS do I have, and which symptoms should we prioritise?</div>
+                <div class="question-item"><span class="question-mark">"</span>Should we test my insulin levels, and how would the results change the approach?</div>
+                <div class="question-item"><span class="question-mark">"</span>What lifestyle changes would make the biggest difference for my specific situation?</div>
+                <div class="question-item"><span class="question-mark">"</span>How does PCOS affect my fertility, and what should I know now even if I am not trying to conceive yet?</div>
+                <div class="question-item"><span class="question-mark">"</span>What should I be monitoring long-term, and how often?</div>
+              </div>
+            </div>
+            <div class="card-disclaimer">The information here is meant to help you understand your body and feel more prepared for conversations with your healthcare provider. It is not medical advice, and your doctor is always the right person to guide your personal health decisions.</div>
+          </div>
+        </div>
+
+
+        <!-- CARD 3: ENDOMETRIOSIS -->
+        <div class="condition-card" id="card-endo" data-categories="cycle" data-search="endometriosis chronic pain fertility inflammation pelvic pain heavy periods bowel bladder infertility endo belly">
+          <div class="card-header" onclick="toggleCard('card-endo')">
+            <div class="card-icon">🔴</div>
+            <div class="card-meta">
+              <div class="card-category">Reproductive condition</div>
+              <h2 class="card-title">Endometriosis</h2>
+              <p class="card-subtitle">A painful condition affecting 1 in 10 women. Tissue similar to the uterine lining grows outside the uterus. On average, diagnosis takes 7 to 12 years.</p>
+              <div class="card-tags"><span class="tag">Chronic pain</span><span class="tag">Fertility</span><span class="tag">Inflammation</span><span class="tag">Often misdiagnosed</span></div>
+            </div>
+            <button class="card-toggle" aria-label="Toggle">+</button>
+          </div>
+          <div class="card-body">
+            <div class="card-divider"></div>
+            <div class="subsection">
+              <div class="section-label">What is it</div>
+              <p class="body-text">Endometrial-like tissue grows outside the uterus, on the ovaries, fallopian tubes, bowel, bladder, and pelvic lining. During menstruation, this tissue bleeds internally with nowhere to go. Over time this causes inflammation, scar tissue, and adhesions. Symptom severity does not reflect disease staging. Someone with mild endometriosis can be in severe pain, and someone with extensive disease may have few symptoms.</p>
+              <div class="stat-row">
+                <div class="stat-badge"><span class="stat-num">~10%</span><span class="stat-label">of women affected</span></div>
+                <div class="stat-badge"><span class="stat-num">7–12 yrs</span><span class="stat-label">average to diagnosis</span></div>
+                <div class="stat-badge"><span class="stat-num">~40%</span><span class="stat-label">of infertile women</span></div>
+              </div>
+            </div>
+            <div class="subsection">
+              <div class="section-label">Why diagnosis takes so long</div>
+              <p class="body-text">Period pain has been normalised for generations. Women are regularly told "it's just bad periods" and sent away. Definitive diagnosis requires a surgical procedure, which creates a high bar for investigation. Symptoms also overlap significantly with IBS, bladder conditions, and pelvic floor issues, leading to frequent misdiagnosis. Many women visit multiple doctors over years before anyone considers endometriosis.</p>
+              <div class="info-box warning">
+                <div class="info-box-label">Important</div>
+                Painful periods that interfere with daily life are not normal. If pain is not adequately managed, or if it is getting worse over time, you deserve to be taken seriously. Advocate for yourself, and seek a second opinion if needed.
+              </div>
+            </div>
+            <div class="subsection">
+              <div class="section-label">Symptoms</div>
+              <div class="symptoms-grid">
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:#e85050"></span>Severe, debilitating period pain</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:#e85050"></span>Chronic pelvic pain between periods</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--blush)"></span>Pain during or after sex</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--blush)"></span>Painful bowel movements or urination</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--sand)"></span>Heavy periods with clots</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--sand)"></span>Significant bloating around periods</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--lavender)"></span>Fatigue and low energy</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--lavender)"></span>Difficulty conceiving</div>
+              </div>
+            </div>
+            <div class="subsection">
+              <div class="section-label">What doctors look at</div>
+              <p class="body-text">Doctors will look at your full symptom picture, cycle history, and quality of life impact. Because definitive diagnosis is surgical, many doctors first explore whether symptom management through hormonal options gives relief, which can also act as a diagnostic indicator. Surgical options exist for those where other approaches are insufficient. Pelvic physiotherapy and pain-focused support are increasingly recognised as important alongside other care. Working with a specialist who focuses specifically on endometriosis often makes a significant difference.</p>
+            </div>
+            <div class="subsection">
+              <div class="section-label">Questions to ask your doctor</div>
+              <div class="questions-list">
+                <div class="question-item"><span class="question-mark">"</span>Could my symptoms be consistent with endometriosis, and what would investigating that involve?</div>
+                <div class="question-item"><span class="question-mark">"</span>What are the non-surgical options for symptom management, and what are the trade-offs?</div>
+                <div class="question-item"><span class="question-mark">"</span>If I wanted a definitive diagnosis, what would that process look like?</div>
+                <div class="question-item"><span class="question-mark">"</span>Should I be seeing an endometriosis specialist rather than a general gynaecologist?</div>
+                <div class="question-item"><span class="question-mark">"</span>How might this affect my fertility, and when should we be having that conversation?</div>
+              </div>
+            </div>
+            <div class="card-disclaimer">The information here is meant to help you understand your body and feel more prepared for conversations with your healthcare provider. It is not medical advice, and your doctor is always the right person to guide your personal health decisions.</div>
+          </div>
+        </div>
+
+
+        <!-- CARD 4: PERIMENOPAUSE & MENOPAUSE -->
+        <div class="condition-card" id="card-meno" data-categories="menopause hormones" data-search="perimenopause menopause HRT hot flashes night sweats mood sleep brain fog bone density estrogen progesterone">
+          <div class="card-header" onclick="toggleCard('card-meno')">
+            <div class="card-icon">🌅</div>
+            <div class="card-meta">
+              <div class="card-category">Life transition</div>
+              <h2 class="card-title">Perimenopause &amp; Menopause</h2>
+              <p class="card-subtitle">Not a disease. A major hormonal transition that deserves proper information, not dismissal. It often begins years earlier than most people expect.</p>
+              <div class="card-tags"><span class="tag">Estrogen</span><span class="tag">Progesterone</span><span class="tag">HRT</span><span class="tag">Brain health</span><span class="tag">Bone density</span></div>
+            </div>
+            <button class="card-toggle" aria-label="Toggle">+</button>
+          </div>
+          <div class="card-body">
+            <div class="card-divider"></div>
+            <div class="subsection">
+              <div class="section-label">What is it</div>
+              <p class="body-text">Perimenopause is the transitional phase, often beginning in the early to mid-40s and sometimes in the late 30s. It can last anywhere from four to ten years. During this time, hormone levels fluctuate erratically rather than declining in a smooth, predictable way. Menopause itself is defined as twelve consecutive months without a period, occurring at a median age of around 51 in Europe.</p>
+              <div class="info-box insight">
+                <div class="info-box-label">Often unrecognised</div>
+                Perimenopause symptoms can appear years before any cycle changes. Anxiety, brain fog, sleep disruption, and joint pain are common early signs. Many women in their early 40s are told they are too young for menopause-related symptoms. If something feels off and is cyclical or new, it is worth exploring.
+              </div>
+            </div>
+            <div class="subsection">
+              <div class="section-label">Symptoms</div>
+              <div class="symptoms-grid">
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--blush)"></span>Hot flashes and night sweats</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--blush)"></span>Irregular or changing periods</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--lavender)"></span>Sleep disturbances</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--lavender)"></span>Mood changes, anxiety, irritability</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--lavender)"></span>Brain fog and memory changes</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--sand)"></span>Vaginal dryness</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--sand)"></span>Reduced libido</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--sand)"></span>Joint pain and stiffness</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--blush)"></span>Hair thinning</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--blush)"></span>Urinary changes and more frequent UTIs</div>
+              </div>
+            </div>
+            <div class="subsection">
+              <div class="section-label">What doctors look at</div>
+              <p class="body-text">Doctors will look at your symptoms, age, cycle history, and overall health to understand where you are in the transition. Hormone testing can be helpful in some cases, though in perimenopause levels fluctuate so much that a single result is rarely the whole story. Conversations about managing symptoms often cover a range of options, from lifestyle and sleep support to hormonal therapies. The evidence around hormonal support has evolved significantly in recent years, and many doctors now have a more nuanced view of both the benefits and the risks than was common a decade ago.</p>
+              <div class="info-box warning">
+                <div class="info-box-label">Worth checking</div>
+                Menopause symptoms overlap significantly with thyroid conditions. If you are in perimenopause, ask your doctor to also test thyroid function. These two things are frequently confused and both are worth ruling in or out.
+              </div>
+            </div>
+            <div class="subsection">
+              <div class="section-label">Questions to ask your doctor</div>
+              <div class="questions-list">
+                <div class="question-item"><span class="question-mark">"</span>Could my symptoms be related to perimenopause, even at my age?</div>
+                <div class="question-item"><span class="question-mark">"</span>Should we also test my thyroid, given how much the symptoms can overlap?</div>
+                <div class="question-item"><span class="question-mark">"</span>What options are available to me for managing symptoms, and what are the differences between them?</div>
+                <div class="question-item"><span class="question-mark">"</span>How does my personal health history affect what would be appropriate for me?</div>
+                <div class="question-item"><span class="question-mark">"</span>What should I be thinking about for bone and heart health as I move through this transition?</div>
+              </div>
+            </div>
+            <div class="card-disclaimer">The information here is meant to help you understand your body and feel more prepared for conversations with your healthcare provider. It is not medical advice, and your doctor is always the right person to guide your personal health decisions.</div>
+          </div>
+        </div>
+
+
+        <!-- CARD 5: THYROID -->
+        <div class="condition-card" id="card-thyroid" data-categories="thyroid hormones" data-search="thyroid hypothyroidism hyperthyroidism hashimoto TSH T3 T4 fatigue weight fertility cycle energy metabolism autoimmune">
+          <div class="card-header" onclick="toggleCard('card-thyroid')">
+            <div class="card-icon">🦋</div>
+            <div class="card-meta">
+              <div class="card-category">Hormonal / Endocrine</div>
+              <h2 class="card-title">Thyroid Health &amp; Women</h2>
+              <p class="card-subtitle">A small butterfly-shaped gland with enormous influence on energy, mood, weight, cycles, and fertility. Women are 5 to 8 times more likely to develop thyroid disorders than men.</p>
+              <div class="card-tags"><span class="tag">TSH</span><span class="tag">Hypothyroidism</span><span class="tag">Hashimoto's</span><span class="tag">Fertility</span><span class="tag">Cycle impact</span></div>
+            </div>
+            <button class="card-toggle" aria-label="Toggle">+</button>
+          </div>
+          <div class="card-body">
+            <div class="card-divider"></div>
+            <div class="subsection">
+              <div class="section-label">What is it</div>
+              <p class="body-text">The thyroid produces hormones that regulate metabolism, body temperature, heart rate, energy, and the reproductive system. When it is not functioning well, the effects reach almost every part of your body. Thyroid dysfunction directly impacts menstrual cycles, fertility, mood, and cognitive function, yet it is frequently missed because its symptoms look so much like other things.</p>
+              <div class="stat-row">
+                <div class="stat-badge"><span class="stat-num">5–8×</span><span class="stat-label">more common in women</span></div>
+                <div class="stat-badge"><span class="stat-num">1 in 8</span><span class="stat-label">women affected in lifetime</span></div>
+              </div>
+            </div>
+            <div class="subsection">
+              <div class="section-label">Understanding the conditions</div>
+              <div class="compare-table-wrap">
+                <table class="compare-table">
+                  <thead><tr><th>Condition</th><th>What happens</th><th>Key symptoms</th></tr></thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>Hypothyroidism</strong><br><span style="font-size:0.75rem;color:var(--muted-foreground)">Underactive</span></td>
+                      <td>Too little hormone is produced and metabolism slows</td>
+                      <td>Fatigue, weight gain, cold intolerance, depression, brain fog, heavy periods, hair loss, constipation</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Hyperthyroidism</strong><br><span style="font-size:0.75rem;color:var(--muted-foreground)">Overactive</span></td>
+                      <td>Too much hormone is produced and metabolism accelerates</td>
+                      <td>Weight loss, rapid heartbeat, anxiety, heat intolerance, lighter or absent periods, tremor, insomnia</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Hashimoto's</strong><br><span style="font-size:0.75rem;color:var(--muted-foreground)">Autoimmune</span></td>
+                      <td>The immune system attacks the thyroid over time</td>
+                      <td>Similar to hypothyroidism, can fluctuate in earlier stages. The most common thyroid condition overall.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="subsection">
+              <div class="section-label">Impact on cycles and fertility</div>
+              <p class="body-text">An underactive thyroid tends to produce heavier, more frequent, or irregular periods, and can interfere with ovulation. An overactive thyroid tends to produce lighter or absent periods. Many women find that once the thyroid is properly supported, their cycles naturally settle and fertility improves. This connection is under-recognised, and thyroid testing is not always offered when cycles are the presenting concern.</p>
+              <div class="info-box insight">
+                <div class="info-box-label">Worth knowing</div>
+                Thyroid symptoms look a lot like perimenopause, depression, chronic fatigue, and PCOS. A blood test can distinguish thyroid dysfunction. When you ask your doctor, request a full panel: TSH, Free T4, Free T3, and TPO antibodies. A TSH result alone does not always give the full picture.
+              </div>
+            </div>
+            <div class="subsection">
+              <div class="section-label">What doctors look at</div>
+              <p class="body-text">Diagnosis starts with blood tests, though interpreting the results involves nuance. What is considered a "normal" TSH range is debated among specialists, and some women feel symptoms at levels that fall within the standard reference range. Doctors will look at your full symptom picture alongside your results. Support for thyroid conditions is generally long-term and requires regular monitoring as needs can change over time.</p>
+            </div>
+            <div class="subsection">
+              <div class="section-label">Questions to ask your doctor</div>
+              <div class="questions-list">
+                <div class="question-item"><span class="question-mark">"</span>Can we run a full thyroid panel, including Free T3, Free T4, and TPO antibodies, not just TSH?</div>
+                <div class="question-item"><span class="question-mark">"</span>My results are within the normal range but I still have symptoms. Is there more to explore?</div>
+                <div class="question-item"><span class="question-mark">"</span>Could my irregular cycles or fertility challenges be related to thyroid function?</div>
+                <div class="question-item"><span class="question-mark">"</span>If I have Hashimoto's, what lifestyle factors are worth addressing alongside any treatment?</div>
+                <div class="question-item"><span class="question-mark">"</span>How often should we recheck my levels, and what would prompt us to revisit the approach?</div>
+              </div>
+            </div>
+            <div class="card-disclaimer">The information here is meant to help you understand your body and feel more prepared for conversations with your healthcare provider. It is not medical advice, and your doctor is always the right person to guide your personal health decisions.</div>
+          </div>
+        </div>
+
+
+        <!-- CARD 6: HORMONAL CONTRACEPTION -->
+        <div class="condition-card" id="card-contra" data-categories="contraception hormones" data-search="contraception pill IUD implant hormonal mood libido copper mirena nexplanon progesterone estrogen cycle natural">
+          <div class="card-header" onclick="toggleCard('card-contra')">
+            <div class="card-icon">💙</div>
+            <div class="card-meta">
+              <div class="card-category">Contraception &amp; Hormones</div>
+              <h2 class="card-title">Hormonal Contraception</h2>
+              <p class="card-subtitle">How different methods work, what they do to your cycle, and how they can affect mood, libido, and wellbeing. Honestly explained.</p>
+              <div class="card-tags"><span class="tag">The pill</span><span class="tag">IUD</span><span class="tag">Implant</span><span class="tag">Mood effects</span><span class="tag">Natural cycles</span></div>
+            </div>
+            <button class="card-toggle" aria-label="Toggle">+</button>
+          </div>
+          <div class="card-body">
+            <div class="card-divider"></div>
+            <div class="subsection">
+              <div class="section-label">How it works</div>
+              <p class="body-text">Hormonal contraception introduces synthetic estrogen and/or progestins into the body, suppressing the natural hormonal cycle. Most methods prevent ovulation, thicken cervical mucus, and alter the uterine lining. One thing many women are not told: on combined hormonal methods the monthly bleed is a withdrawal bleed, not a true period driven by your own hormones. Your natural cycle is paused for as long as you use hormonal contraception.</p>
+            </div>
+            <div class="subsection">
+              <div class="section-label">Method overview</div>
+              <div class="compare-table-wrap">
+                <table class="compare-table">
+                  <thead><tr><th>Method</th><th>Hormones</th><th>Key points</th></tr></thead>
+                  <tbody>
+                    <tr><td><strong>Combined pill</strong></td><td>Synthetic estrogen and progestin</td><td>Suppresses ovulation fully. Can improve certain symptoms for some. May affect mood, libido, or lubrication in others. Small blood clot risk.</td></tr>
+                    <tr><td><strong>Progestin-only pill</strong></td><td>Progestin only</td><td>May or may not suppress ovulation. Suitable for those who cannot take estrogen. Irregular spotting is common in early months.</td></tr>
+                    <tr><td><strong>Hormonal IUD</strong></td><td>Progestin released locally</td><td>Very low systemic hormone levels. Many stop having periods. Often reported to have a lower mood impact. Lasts 3 to 8 years depending on type.</td></tr>
+                    <tr><td><strong>Implant</strong></td><td>Progestin</td><td>A small rod inserted under the skin of the upper arm. Suppresses ovulation in most. Irregular bleeding common early on. Lasts 3 years.</td></tr>
+                    <tr><td><strong>Patch and vaginal ring</strong></td><td>Estrogen and progestin</td><td>Similar hormonal profile to the combined pill, delivered through the skin or vaginally rather than orally.</td></tr>
+                    <tr><td><strong>Copper IUD</strong></td><td>No hormones</td><td>Works through the effect of copper on sperm. Natural cycle is fully preserved. Can cause heavier or more painful periods. Lasts 5 to 10 years.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="subsection">
+              <div class="section-label">Mood and wellbeing</div>
+              <p class="body-text">A large study involving over one million women found associations between hormonal contraception and increased rates of depression and antidepressant use, particularly in younger women and with certain formulations. At the same time, many women report feeling better on hormonal contraception because it reduces painful or disruptive symptoms. The effect is genuinely individual, and neither experience is more valid than the other.</p>
+              <div class="info-box insight">
+                <div class="info-box-label">Worth knowing</div>
+                If you notice changes to your mood, libido, or energy after starting a method, that is important information. Trying a different formulation, or a different method type, often changes the picture significantly. You do not have to stay with something that does not feel right.
+              </div>
+            </div>
+            <div class="subsection">
+              <div class="section-label">Interactions with other conditions</div>
+              <p class="body-text">Hormonal contraception intersects with several other conditions in ways worth knowing about. For endometriosis and PMDD, certain formulations are used as part of symptom management, though the type of progestin matters and not all are equally suited to everyone. For PCOS, hormonal contraception can help with cycle regularity and androgenic symptoms but does not address the underlying metabolic picture. For those on thyroid support, oral estrogen-containing methods can affect how thyroid levels are interpreted in blood tests, so your doctor should know if you start or stop these.</p>
+            </div>
+            <div class="subsection">
+              <div class="section-label">Coming off hormonal contraception</div>
+              <p class="body-text">Natural cycles typically resume within one to six months, though this varies by method and by person. Some women experience a period of adjustment involving irregular cycles, acne, or mood changes while the body rebalances. If periods do not return within three months, it is worth speaking with a doctor.</p>
+              <div class="info-box warning">
+                <div class="info-box-label">Important</div>
+                There is no single best method. The right choice depends on your health history, your symptoms, your fertility intentions, and how your body responds. This is here to help you walk into that conversation better informed.
+              </div>
+            </div>
+            <div class="subsection">
+              <div class="section-label">Questions to ask your doctor</div>
+              <div class="questions-list">
+                <div class="question-item"><span class="question-mark">"</span>Given my health history and what I want from contraception, what would you suggest and why?</div>
+                <div class="question-item"><span class="question-mark">"</span>I have noticed changes to my mood or libido since starting. Is that something we should address by changing method or formulation?</div>
+                <div class="question-item"><span class="question-mark">"</span>I have endometriosis, PMDD, or PCOS. How does that change what would be most appropriate for me?</div>
+                <div class="question-item"><span class="question-mark">"</span>What should I expect when I eventually come off hormonal contraception?</div>
+              </div>
+            </div>
+            <div class="card-disclaimer">The information here is meant to help you understand your body and feel more prepared for conversations with your healthcare provider. It is not medical advice, and your doctor is always the right person to guide your personal health decisions.</div>
+          </div>
+        </div>
+
+
+        <!-- CARD 7: ADENOMYOSIS -->
+        <div class="condition-card" id="card-adeno" data-categories="uterine cycle" data-search="adenomyosis heavy periods pelvic pain enlarged uterus cramping bloating uterine muscle wall myometrium misdiagnosed">
+          <div class="card-header" onclick="toggleCard('card-adeno')">
+            <div class="card-icon">🫧</div>
+            <div class="card-meta">
+              <div class="card-category">Uterine condition</div>
+              <h2 class="card-title">Adenomyosis</h2>
+              <p class="card-subtitle">Often called endometriosis's lesser-known sister. Tissue grows into the muscle wall of the uterus itself, causing heavy bleeding and chronic pelvic pain.</p>
+              <div class="card-tags"><span class="tag">Heavy periods</span><span class="tag">Pelvic pain</span><span class="tag">Enlarged uterus</span><span class="tag">Often misdiagnosed</span></div>
+            </div>
+            <button class="card-toggle" aria-label="Toggle">+</button>
+          </div>
+          <div class="card-body">
+            <div class="card-divider"></div>
+            <div class="subsection">
+              <div class="section-label">What is it</div>
+              <p class="body-text">Endometrial tissue grows into the myometrium, the muscular wall of the uterus, rather than outside it. During menstruation, this tissue bleeds internally, causing the uterus to enlarge and cramping to become more intense. Adenomyosis is estimated to affect 20 to 35% of women and frequently coexists with endometriosis or fibroids. Improvements in MRI imaging have made diagnosis more accessible than it once was.</p>
+              <div class="stat-row">
+                <div class="stat-badge"><span class="stat-num">20–35%</span><span class="stat-label">estimated prevalence</span></div>
+              </div>
+            </div>
+            <div class="subsection">
+              <div class="section-label">Symptoms</div>
+              <div class="symptoms-grid">
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--blush)"></span>Heavy, prolonged periods</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--blush)"></span>Severe menstrual cramps</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--sand)"></span>Chronic pelvic pressure or fullness</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--sand)"></span>Enlarged and tender uterus</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--lavender)"></span>Pain during sex</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--lavender)"></span>Significant bloating before or during periods</div>
+              </div>
+            </div>
+            <div class="subsection">
+              <div class="section-label">What doctors look at</div>
+              <p class="body-text">Doctors will assess your symptoms, pelvic exam findings, and may refer for an MRI or specialist ultrasound. Because adenomyosis often coexists with other conditions, the full picture matters before deciding on a path. Hormonal approaches that suppress the cycle are often explored to assess whether they bring relief. Newer non-surgical options have expanded in recent years. Surgical options exist for more severe cases. The right path depends on the severity of your symptoms, your fertility plans, and how the condition is affecting your daily life.</p>
+              <div class="info-box insight">
+                <div class="info-box-label">Worth knowing</div>
+                Adenomyosis frequently occurs alongside endometriosis and fibroids. If you have been investigated for one, it may be worth asking whether the others have been considered.
+              </div>
+            </div>
+            <div class="subsection">
+              <div class="section-label">Questions to ask your doctor</div>
+              <div class="questions-list">
+                <div class="question-item"><span class="question-mark">"</span>Could adenomyosis explain my symptoms, and what investigation would help clarify that?</div>
+                <div class="question-item"><span class="question-mark">"</span>Should we also look at whether endometriosis or fibroids are present at the same time?</div>
+                <div class="question-item"><span class="question-mark">"</span>What non-surgical options are available, and how long would it take to know if they are working?</div>
+                <div class="question-item"><span class="question-mark">"</span>How might this affect my fertility, and when should we be discussing that?</div>
+              </div>
+            </div>
+            <div class="card-disclaimer">The information here is meant to help you understand your body and feel more prepared for conversations with your healthcare provider. It is not medical advice, and your doctor is always the right person to guide your personal health decisions.</div>
+          </div>
+        </div>
+
+
+        <!-- CARD 8: UTERINE FIBROIDS -->
+        <div class="condition-card" id="card-fibroids" data-categories="uterine" data-search="fibroids uterine myoma leiomyoma heavy bleeding pressure urinary fertility non-cancerous benign estrogen black women">
+          <div class="card-header" onclick="toggleCard('card-fibroids')">
+            <div class="card-icon">🌊</div>
+            <div class="card-meta">
+              <div class="card-category">Uterine condition</div>
+              <h2 class="card-title">Uterine Fibroids</h2>
+              <p class="card-subtitle">Non-cancerous growths that up to 80% of women will develop by age 50. Rarely discussed, yet extremely common.</p>
+              <div class="card-tags"><span class="tag">Non-cancerous</span><span class="tag">Heavy bleeding</span><span class="tag">Pressure symptoms</span><span class="tag">Fertility impact</span></div>
+            </div>
+            <button class="card-toggle" aria-label="Toggle">+</button>
+          </div>
+          <div class="card-body">
+            <div class="card-divider"></div>
+            <div class="subsection">
+              <div class="section-label">What is it</div>
+              <p class="body-text">Fibroids are benign growths that develop in or on the uterus. They are stimulated by estrogen and progesterone and typically shrink after menopause. They range from microscopic to very large and can grow singly or in clusters. Black women are 2 to 3 times more likely to develop fibroids, tend to develop them earlier, and experience more severe symptoms. This disparity remains significantly under-researched.</p>
+              <div class="stat-row">
+                <div class="stat-badge"><span class="stat-num">up to 80%</span><span class="stat-label">of women by age 50</span></div>
+                <div class="stat-badge"><span class="stat-num">2–3×</span><span class="stat-label">higher risk in Black women</span></div>
+              </div>
+              <div class="info-box stat">
+                <div class="info-box-label">Worth knowing</div>
+                Many fibroids cause no symptoms and are discovered incidentally during routine scans. Finding one does not automatically mean treatment is needed. Whether to pursue any action depends entirely on whether symptoms are present and how much they affect daily life.
+              </div>
+            </div>
+            <div class="subsection">
+              <div class="section-label">Symptoms</div>
+              <div class="symptoms-grid">
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--blush)"></span>Heavy or prolonged periods</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--blush)"></span>Pelvic pressure or fullness</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--sand)"></span>Frequent or urgent urination</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--sand)"></span>Constipation or lower back pain</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--lavender)"></span>Painful periods</div>
+                <div class="symptom-item"><span class="symptom-dot" style="background-color:var(--lavender)"></span>Difficulty conceiving (depends on location)</div>
+              </div>
+            </div>
+            <div class="subsection">
+              <div class="section-label">What doctors look at</div>
+              <p class="body-text">The approach to fibroids depends entirely on your symptoms, the size and location of the fibroids, your age, and your fertility plans. For asymptomatic fibroids, watchful waiting with regular monitoring is often entirely appropriate. When symptoms are present, conversations typically move through a range from hormonal management to minimally invasive procedures to surgery. Fibroids generally shrink naturally after menopause, which is a relevant consideration in timing decisions for women approaching that transition.</p>
+            </div>
+            <div class="subsection">
+              <div class="section-label">Questions to ask your doctor</div>
+              <div class="questions-list">
+                <div class="question-item"><span class="question-mark">"</span>Where are my fibroids located, and how does that affect what symptoms I might expect?</div>
+                <div class="question-item"><span class="question-mark">"</span>Given my symptoms and my stage of life, what would you recommend as a starting point?</div>
+                <div class="question-item"><span class="question-mark">"</span>What are the minimally invasive options available, and am I a candidate for them?</div>
+                <div class="question-item"><span class="question-mark">"</span>If I want to preserve my fertility, how does that change what we consider?</div>
+                <div class="question-item"><span class="question-mark">"</span>If we take a watchful waiting approach, what would prompt us to act sooner?</div>
+              </div>
+            </div>
+            <div class="card-disclaimer">The information here is meant to help you understand your body and feel more prepared for conversations with your healthcare provider. It is not medical advice, and your doctor is always the right person to guide your personal health decisions.</div>
+          </div>
+        </div>
+
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ── Footer ── -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-logo">
+        <span class="footer-logo-dot"></span>
+        <span class="footer-logo-name">Lunara</span>
+      </div>
+      <p>© 2026 Lunara. Educational content, not medical advice.</p>
+      <div class="footer-links">
+        <a data-modal="modalPrivacy">Privacy</a>
+        <a data-modal="modalTerms">Terms</a>
+        <a href="preview.html">Home</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ── Cookie Banner ── -->
+  <div class="cookie-banner" id="cookieBanner">
+    <p>We use essential cookies to keep Lunara working. We do not track or sell your data. Read our <a data-modal="modalPrivacy">Privacy Policy</a> to learn more.</p>
+    <div class="cookie-banner-actions">
+      <button class="cookie-btn-accept" id="cookieAccept">Accept</button>
+      <button class="cookie-btn-decline" id="cookieDecline">Decline</button>
+    </div>
+  </div>
+
+  <!-- ── Privacy Modal ── -->
+  <div class="modal-backdrop" id="modalPrivacy">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 class="modal-title">Privacy Policy</h2>
+        <button class="modal-close" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-content">
+        <h3>Your data is yours</h3>
+        <p>Lunara is built on the belief that health data is deeply personal. We collect only what is needed to provide the service, and we never sell or share your data with third parties for advertising.</p>
+        <h3>What we collect</h3>
+        <p>We collect the information you provide directly, such as your email address when you join the waitlist and any cycle or health data you enter within the app. We also collect basic usage data to understand how the app is being used so we can improve it.</p>
+        <h3>How we use it</h3>
+        <p>Your health data is used solely to power your personal experience within Lunara. It is never used to train AI models without your explicit consent, and it is never shared with employers, insurers, or other third parties.</p>
+        <h3>Cookies</h3>
+        <p>We use essential cookies that are necessary for the app to function. We do not use tracking or advertising cookies.</p>
+        <h3>Your rights</h3>
+        <p>You have the right to access, correct, or delete your data at any time. To exercise these rights, contact us through the app or at our support email.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Terms Modal ── -->
+  <div class="modal-backdrop" id="modalTerms">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 class="modal-title">Terms of Use</h2>
+        <button class="modal-close" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-content">
+        <h3>Educational use only</h3>
+        <p>Lunara is an educational and lifestyle app. It is not a medical device and is not intended to diagnose, treat, cure, or prevent any disease or medical condition. Always consult a qualified healthcare provider for medical decisions.</p>
+        <h3>Your account</h3>
+        <p>You are responsible for keeping your login credentials secure. Lunara is intended for personal use only. You must be 16 or older to create an account.</p>
+        <h3>Content accuracy</h3>
+        <p>We work hard to ensure the information in Lunara is accurate and up to date. However, health research evolves and content should not be treated as medical advice. We update our content regularly to reflect current evidence.</p>
+        <h3>Acceptable use</h3>
+        <p>You agree not to misuse the app, attempt to access other users' data, or use the app in any way that could harm others. We reserve the right to suspend accounts that violate these terms.</p>
+        <h3>Changes to these terms</h3>
+        <p>We may update these terms as the app evolves. We will notify you of significant changes. Continued use after changes are posted means you accept the updated terms.</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="lunara.js"></script>
+  <script>
+    // Card toggle
+    function toggleCard(id) {
+      document.getElementById(id).classList.toggle('open');
+      updateSidebar();
+    }
+
+    // Search and filter
+    const searchInput = document.getElementById('searchInput');
+    const searchClear = document.getElementById('searchClear');
+    const cards = Array.from(document.querySelectorAll('.condition-card'));
+    const noResults = document.getElementById('noResults');
+
+    function filterCards() {
+      const query = searchInput.value.trim().toLowerCase();
+      const activeFilter = document.querySelector('.pill.active')?.dataset.filter || 'all';
+      searchClear.classList.toggle('visible', query.length > 0);
+      let visible = 0;
+      cards.forEach(card => {
+        const text = (card.dataset.search + ' ' + card.querySelector('.card-title').textContent + ' ' + card.querySelector('.card-subtitle').textContent).toLowerCase();
+        const cats = card.dataset.categories || '';
+        const ok = (!query || text.includes(query)) && (activeFilter === 'all' || cats.includes(activeFilter));
+        card.classList.toggle('hidden', !ok);
+        if (ok) visible++;
+      });
+      noResults.classList.toggle('visible', visible === 0);
+    }
+
+    searchInput.addEventListener('input', filterCards);
+    searchClear.addEventListener('click', () => { searchInput.value = ''; filterCards(); searchInput.focus(); });
+    document.getElementById('pillsRow').addEventListener('click', e => {
+      const pill = e.target.closest('.pill');
+      if (!pill) return;
+      document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      filterCards();
+    });
+
+    // Sidebar active state
+    function updateSidebar() {
+      let closestId = null; let closestDist = Infinity;
+      cards.forEach(card => {
+        if (card.classList.contains('hidden')) return;
+        const dist = Math.abs(card.getBoundingClientRect().top - 120);
+        if (dist < closestDist) { closestDist = dist; closestId = card.id; }
+      });
+      document.querySelectorAll('.sidebar-item').forEach(item => item.classList.toggle('active', item.dataset.target === closestId));
+    }
+    window.addEventListener('scroll', updateSidebar, { passive: true });
+    document.querySelectorAll('.sidebar-item').forEach(item => {
+      item.addEventListener('click', e => {
+        e.preventDefault();
+        const card = document.getElementById(item.dataset.target);
+        if (card && !card.classList.contains('open')) card.classList.add('open');
+        setTimeout(() => card?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+      });
+    });
+    updateSidebar();
+  </script>
+</body>
+</html>

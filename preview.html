@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lunara: Female Health OS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;1,300;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="lunara.css" />
+  <style>
+    /* ── Page-specific styles ── */
+
+    /* Hero */
+    .hero {
+      position: relative; padding-top: 8rem; padding-bottom: 6rem; overflow: hidden;
+    }
+    .hero-aurora {
+      position: absolute; inset: 0;
+      background-image: var(--gradient-aurora); opacity: 0.8; pointer-events: none;
+    }
+    .hero-inner {
+      position: relative; max-width: 72rem; margin: 0 auto; padding: 0 1.5rem;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center;
+    }
+    @media (max-width: 768px) { .hero-inner { grid-template-columns: 1fr; } }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.2em;
+      color: var(--muted-foreground); margin-bottom: 1.5rem;
+    }
+    .eyebrow-dot { width: 6px; height: 6px; border-radius: 9999px; background-color: var(--blush); }
+    .hero h1 { font-size: clamp(3rem, 6vw, 4.5rem); line-height: 1.05; margin-bottom: 1.5rem; }
+    .italic { font-style: italic; color: var(--clay); }
+    .hero p { font-size: 1.125rem; color: var(--muted-foreground); max-width: 32rem; margin-bottom: 2rem; line-height: 1.7; }
+    .hero-ctas { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 2.5rem; }
+    .btn-cta-primary {
+      padding: 0.875rem 1.5rem; border-radius: 9999px;
+      background-color: var(--primary); color: var(--primary-foreground);
+      font-size: 0.875rem; box-shadow: var(--shadow-glow); transition: transform 0.15s;
+    }
+    .btn-cta-primary:hover { transform: scale(1.02); }
+    .btn-cta-secondary {
+      padding: 0.875rem 1.5rem; border-radius: 9999px;
+      background-color: var(--card); border: 1px solid var(--border);
+      font-size: 0.875rem; color: var(--foreground); transition: background-color 0.15s;
+    }
+    .btn-cta-secondary:hover { background-color: var(--secondary); }
+    .hero-stats { display: flex; align-items: center; gap: 1.5rem; font-size: 0.75rem; color: var(--muted-foreground); }
+    .stat-num { font-family: 'Fraunces', serif; font-size: 1.5rem; color: var(--foreground); display: block; }
+    .divider { width: 1px; height: 2rem; background-color: var(--border); }
+    .hero-img-wrap { position: relative; }
+    .hero-img-glow {
+      position: absolute; inset: -2rem;
+      background-image: var(--gradient-hero); filter: blur(3rem); opacity: 0.5; border-radius: 9999px;
+    }
+    .hero-img-box {
+      position: relative; border-radius: 1.5rem; overflow: hidden;
+      box-shadow: var(--shadow-glow); border: 1px solid rgba(232,224,212,0.5);
+      aspect-ratio: 4/5; background-image: var(--gradient-hero);
+      display: flex; align-items: flex-end;
+    }
+    .hero-card {
+      margin: 1.5rem; backdrop-filter: blur(12px);
+      background-color: rgba(250,248,245,0.7); border-radius: 1rem; padding: 1rem;
+      border: 1px solid rgba(232,224,212,0.5); flex: 1;
+    }
+    .hero-card-top {
+      display: flex; justify-content: space-between; margin-bottom: 0.5rem;
+      font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted-foreground);
+    }
+    .hero-card-top span:last-child { color: var(--clay); }
+    .hero-card p { font-size: 0.875rem; line-height: 1.4; }
+
+    /* Section shared */
+    .page-section { padding: 7rem 0; }
+    .section-inner { max-width: 72rem; margin: 0 auto; padding: 0 1.5rem; }
+    .section-eyebrow { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.2em; color: var(--muted-foreground); }
+    .section-title { font-size: clamp(2rem, 4vw, 3rem); margin-top: 0.75rem; margin-bottom: 1rem; }
+    .section-lead { color: var(--muted-foreground); font-size: 1.125rem; line-height: 1.7; }
+
+    /* Features */
+    .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; margin-top: 4rem; }
+    @media (max-width: 900px) { .features-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 580px) { .features-grid { grid-template-columns: 1fr; } }
+    .feature-card {
+      padding: 1.75rem; border-radius: 1.5rem; background-color: var(--card);
+      border: 1px solid rgba(232,224,212,0.6); transition: border-color 0.5s, box-shadow 0.5s;
+    }
+    .feature-card:hover { border-color: rgba(232,168,152,0.6); box-shadow: var(--shadow-soft); }
+    .feature-icon {
+      width: 2.5rem; height: 2.5rem; border-radius: 0.75rem;
+      background-image: var(--gradient-soft); margin-bottom: 1.5rem; transition: transform 0.3s;
+    }
+    .feature-card:hover .feature-icon { transform: scale(1.1); }
+    .feature-eyebrow { font-size: 0.625rem; text-transform: uppercase; letter-spacing: 0.2em; color: var(--clay); }
+    .feature-card h3 { font-size: 1.25rem; margin: 0.5rem 0 0.75rem; line-height: 1.3; }
+    .feature-card p { font-size: 0.875rem; color: var(--muted-foreground); line-height: 1.6; }
+
+    /* AI Section */
+    .ai-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+    @media (max-width: 768px) { .ai-grid { grid-template-columns: 1fr; } }
+    .chat-box {
+      padding: 1.25rem; border-radius: 1.5rem; background-color: var(--card);
+      border: 1px solid rgba(232,224,212,0.6); box-shadow: var(--shadow-soft); margin-top: 2rem;
+    }
+    .chat-msg { display: flex; margin-bottom: 0.75rem; }
+    .chat-msg.user { justify-content: flex-end; }
+    .chat-bubble {
+      max-width: 80%; padding: 0.625rem 1rem; border-radius: 1rem; font-size: 0.875rem; line-height: 1.5;
+    }
+    .chat-bubble.user { background-color: var(--primary); color: var(--primary-foreground); border-bottom-right-radius: 0.25rem; }
+    .chat-bubble.ai { background-color: var(--secondary); color: var(--foreground); border-bottom-left-radius: 0.25rem; }
+    .prompts-section { padding-top: 0.75rem; border-top: 1px solid var(--border); margin-top: 0.75rem; }
+    .prompts-eyebrow { font-size: 0.625rem; text-transform: uppercase; letter-spacing: 0.2em; color: var(--muted-foreground); margin-bottom: 0.5rem; }
+    .prompts { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .prompt-chip {
+      font-size: 0.75rem; padding: 0.375rem 0.75rem; border-radius: 9999px;
+      background-color: var(--muted); color: var(--muted-foreground); border: none; transition: background-color 0.15s, color 0.15s;
+    }
+    .prompt-chip:hover { background-color: var(--accent); color: var(--foreground); }
+    .ai-image-placeholder {
+      position: relative; border-radius: 1.5rem; overflow: hidden;
+      aspect-ratio: 1; background-image: var(--gradient-aurora);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Fraunces', serif; font-size: 1.25rem; color: var(--clay); opacity: 0.8;
+      min-height: 20rem;
+    }
+
+    /* Cycle Section */
+    .cycle-section { background-color: rgba(243,237,227,0.4); }
+    .cycle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+    @media (max-width: 768px) { .cycle-grid { grid-template-columns: 1fr; } }
+    .cycle-image-placeholder {
+      position: relative; border-radius: 1.5rem; aspect-ratio: 1;
+      background-image: var(--gradient-hero);
+      display: flex; align-items: center; justify-content: center;
+      order: 2; min-height: 20rem;
+    }
+    @media (min-width: 769px) { .cycle-image-placeholder { order: 1; } }
+    .cycle-content { order: 1; }
+    @media (min-width: 769px) { .cycle-content { order: 2; } }
+    .phase-list { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 2.5rem; }
+    .phase-item {
+      display: flex; align-items: center; gap: 1rem; padding: 1rem; border-radius: 1rem;
+      background-color: var(--card); border: 1px solid rgba(232,224,212,0.6);
+    }
+    .phase-dot { width: 2.5rem; height: 2.5rem; border-radius: 9999px; flex-shrink: 0; box-shadow: var(--shadow-soft); }
+    .phase-dot.menstrual  { background-color: rgba(232,168,152,0.4); }
+    .phase-dot.follicular { background-color: rgba(236,222,200,0.6); }
+    .phase-dot.ovulatory  { background-color: rgba(154,96,80,0.3); }
+    .phase-dot.luteal     { background-color: rgba(196,184,216,0.4); }
+    .phase-info { flex: 1; }
+    .phase-header { display: flex; justify-content: space-between; align-items: baseline; }
+    .phase-header h3 { font-size: 1rem; font-weight: 500; font-family: 'Inter', sans-serif; }
+    .phase-days { font-size: 0.75rem; color: var(--muted-foreground); }
+    .phase-note { font-size: 0.875rem; color: var(--muted-foreground); }
+
+    /* Testimonials */
+    .testimonials-section { background-color: rgba(243,237,227,0.4); }
+    .testimonials-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; margin-top: 3.5rem; }
+    @media (max-width: 768px) { .testimonials-grid { grid-template-columns: 1fr; } }
+    .testimonial-card {
+      padding: 1.75rem; border-radius: 1.5rem; background-color: var(--card);
+      border: 1px solid rgba(232,224,212,0.6); display: flex; flex-direction: column;
+    }
+    .testimonial-quote { font-family: 'Fraunces', serif; font-size: 1.25rem; line-height: 1.4; margin-bottom: 1.5rem; }
+    .testimonial-author { margin-top: auto; display: flex; align-items: center; gap: 0.75rem; }
+    .author-avatar { width: 2.25rem; height: 2.25rem; border-radius: 9999px; background-image: var(--gradient-soft); flex-shrink: 0; }
+    .author-name { font-size: 0.875rem; font-weight: 500; }
+    .author-role { font-size: 0.75rem; color: var(--muted-foreground); }
+
+    /* Waitlist */
+    .waitlist-inner { max-width: 48rem; margin: 0 auto; padding: 0 1.5rem; }
+    .waitlist-box {
+      position: relative; overflow: hidden; border-radius: 2.5rem;
+      padding: 3rem 4rem; text-align: center; background-image: var(--gradient-hero);
+    }
+    @media (max-width: 580px) { .waitlist-box { padding: 2rem 1.5rem; border-radius: 1.5rem; } }
+    .waitlist-aurora { position: absolute; inset: 0; background-image: var(--gradient-aurora); opacity: 0.7; }
+    .waitlist-content { position: relative; }
+    .waitlist-box h2 { font-size: clamp(1.75rem, 4vw, 3rem); margin-bottom: 1rem; }
+    .waitlist-box p { color: var(--muted-foreground); max-width: 28rem; margin: 0 auto 2rem; }
+    .waitlist-form { display: flex; flex-direction: column; gap: 0.75rem; max-width: 28rem; margin: 0 auto; }
+    @media (min-width: 480px) { .waitlist-form { flex-direction: row; } }
+    .waitlist-input {
+      flex: 1; padding: 0.875rem 1.25rem; border-radius: 9999px;
+      background-color: rgba(250,248,245,0.8); backdrop-filter: blur(8px);
+      border: 1px solid rgba(232,224,212,0.6); font-size: 0.875rem;
+      font-family: 'Inter', sans-serif; color: var(--foreground); outline: none; transition: box-shadow 0.15s;
+    }
+    .waitlist-input:focus { box-shadow: 0 0 0 2px rgba(154,96,80,0.3); }
+    .waitlist-input::placeholder { color: var(--muted-foreground); }
+    .waitlist-btn {
+      padding: 0.875rem 1.5rem; border-radius: 9999px;
+      background-color: var(--primary); color: var(--primary-foreground);
+      font-size: 0.875rem; font-family: 'Inter', sans-serif; border: none;
+      box-shadow: var(--shadow-glow); transition: transform 0.15s; white-space: nowrap;
+    }
+    .waitlist-btn:hover { transform: scale(1.02); }
+    .waitlist-success { font-family: 'Fraunces', serif; font-style: italic; font-size: 1.25rem; color: var(--clay); }
+
+    /* FAQ */
+    .faq-inner { max-width: 48rem; margin: 0 auto; padding: 0 1.5rem; }
+    .faq-list { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 3.5rem; }
+    details {
+      padding: 1.5rem; border-radius: 1rem; background-color: var(--card);
+      border: 1px solid rgba(232,224,212,0.6); transition: box-shadow 0.2s;
+    }
+    details[open] { box-shadow: var(--shadow-soft); }
+    summary { cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    summary::-webkit-details-marker { display: none; }
+    .faq-q { font-family: 'Fraunces', serif; font-size: 1.125rem; }
+    .faq-icon { color: var(--clay); font-size: 1.25rem; transition: transform 0.2s; flex-shrink: 0; }
+    details[open] .faq-icon { transform: rotate(45deg); }
+    .faq-a { margin-top: 0.75rem; color: var(--muted-foreground); font-size: 0.875rem; line-height: 1.6; }
+  </style>
+</head>
+<body>
+
+  <!-- ── Navbar ── -->
+  <header class="navbar">
+    <div class="navbar-inner">
+      <a href="preview.html" class="logo">
+        <span class="logo-dot"></span>
+        <span class="logo-name">Lunara</span>
+      </a>
+      <nav class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#cycle">Cycle</a>
+        <a href="#education">Hormones</a>
+        <a href="health-library.html">Health Library</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <div class="nav-actions">
+        <a href="#" class="btn-ghost">Sign in</a>
+        <a href="#waitlist" class="btn-primary-nav">Get started</a>
+        <button class="nav-mobile-btn" aria-label="Menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+    <nav class="mobile-drawer">
+      <a href="#features">Features</a>
+      <a href="#cycle">Cycle</a>
+      <a href="#education">Hormones</a>
+      <a href="health-library.html">Health Library</a>
+      <a href="#faq">FAQ</a>
+      <a href="#waitlist">Get started</a>
+    </nav>
+  </header>
+
+  <!-- ── Hero ── -->
+  <section class="hero">
+    <div class="hero-aurora"></div>
+    <div class="hero-inner">
+      <div class="animate-fade-up">
+        <div class="hero-eyebrow">
+          <span class="eyebrow-dot"></span>
+          A new kind of health companion
+        </div>
+        <h1>Your hormones,<br><span class="italic">understood.</span></h1>
+        <p>Lunara is the AI-powered Female Health OS. Cycle, mood, hormones, and lifestyle in one calm, intelligent space designed for the way you actually live.</p>
+        <div class="hero-ctas">
+          <a href="#waitlist" class="btn-cta-primary">Join the waitlist</a>
+          <a href="#features" class="btn-cta-secondary">Explore the app</a>
+        </div>
+        <div class="hero-stats">
+          <div><span class="stat-num">12k+</span>waitlist</div>
+          <div class="divider"></div>
+          <div><span class="stat-num">4.9</span>early rating</div>
+          <div class="divider"></div>
+          <div><span class="stat-num">100%</span>private</div>
+        </div>
+      </div>
+      <div class="hero-img-wrap animate-float-slow">
+        <div class="hero-img-glow"></div>
+        <div class="hero-img-box">
+          <div class="hero-card">
+            <div class="hero-card-top">
+              <span>Today · Day 14</span>
+              <span>Ovulatory</span>
+            </div>
+            <p>Energy peaks today. A beautiful window for connection and creative work.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Features ── -->
+  <section id="features" class="page-section">
+    <div class="section-inner">
+      <div style="max-width:40rem">
+        <div class="section-eyebrow">Features</div>
+        <h2 class="section-title">A holistic Female Health OS.</h2>
+        <p class="section-lead">Not another period tracker. A complete, emotionally intelligent home for your cycle, hormones, mood and lifestyle.</p>
+      </div>
+      <div class="features-grid">
+        <article class="feature-card">
+          <div class="feature-icon"></div>
+          <div class="feature-eyebrow">Cycle</div>
+          <h3>Cycle awareness that learns you</h3>
+          <p>Track period, mood, energy, libido, sleep and skin. Watch patterns surface over time.</p>
+        </article>
+        <article class="feature-card">
+          <div class="feature-icon"></div>
+          <div class="feature-eyebrow">AI Insight</div>
+          <h3>An assistant that actually gets it</h3>
+          <p>Ask anything from cravings to PMS. Empathetic, educational, never prescriptive.</p>
+        </article>
+        <article class="feature-card">
+          <div class="feature-icon"></div>
+          <div class="feature-eyebrow">Hormones</div>
+          <h3>Hormone literacy, made calm</h3>
+          <p>Estrogen, progesterone, cortisol, oxytocin. Clear, beautiful, science-backed.</p>
+        </article>
+        <article class="feature-card">
+          <div class="feature-icon"></div>
+          <div class="feature-eyebrow">Wellbeing</div>
+          <h3>Personalized to your phase</h3>
+          <p>Food, movement, recovery and mindfulness. All synced to where you are right now.</p>
+        </article>
+        <article class="feature-card">
+          <div class="feature-icon"></div>
+          <div class="feature-eyebrow">Together</div>
+          <h3>Partner mode, on your terms</h3>
+          <p>Share simple, respectful insights so the people you love can support you better.</p>
+        </article>
+        <article class="feature-card">
+          <div class="feature-icon"></div>
+          <div class="feature-eyebrow">Analytics</div>
+          <h3>Patterns over noise</h3>
+          <p>Soft, intelligent visualizations of mood, energy, sleep and cycle consistency.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── AI Section ── -->
+  <section id="education" class="page-section">
+    <div class="section-inner">
+      <div class="ai-grid">
+        <div>
+          <div class="section-eyebrow">AI Companion</div>
+          <h2 class="section-title">An assistant that listens first.</h2>
+          <p class="section-lead" style="max-width:28rem">Trained on women's health, not stereotypes. Lunara answers with empathy, science, and zero judgement.</p>
+          <div class="chat-box">
+            <div class="chat-msg user">
+              <div class="chat-bubble user">Why am I so tired today?</div>
+            </div>
+            <div class="chat-msg">
+              <div class="chat-bubble ai">You're in your late luteal phase. Progesterone is dropping and your body is asking for rest. A magnesium-rich dinner and a slow walk could feel really good tonight. 🌙</div>
+            </div>
+            <div class="prompts-section">
+              <div class="prompts-eyebrow">Try asking</div>
+              <div class="prompts">
+                <button class="prompt-chip">Why do I feel emotionally sensitive today?</button>
+                <button class="prompt-chip">What workouts suit my current phase?</button>
+                <button class="prompt-chip">How can I support my hormones naturally?</button>
+                <button class="prompt-chip">Why am I craving sugar before my period?</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="ai-image-placeholder">✦ emotional balance</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Cycle Section ── -->
+  <section id="cycle" class="page-section cycle-section">
+    <div class="section-inner">
+      <div class="cycle-grid">
+        <div class="cycle-image-placeholder">
+          <svg width="120" height="120" viewBox="0 0 120 120" fill="none">
+            <circle cx="60" cy="60" r="50" stroke="rgba(154,96,80,0.3)" stroke-width="2"/>
+            <circle cx="60" cy="60" r="35" stroke="rgba(196,184,216,0.4)" stroke-width="2"/>
+            <circle cx="60" cy="60" r="20" fill="rgba(232,168,152,0.3)"/>
+            <line x1="60" y1="10" x2="60" y2="110" stroke="rgba(154,96,80,0.2)" stroke-width="1"/>
+            <line x1="10" y1="60" x2="110" y2="60" stroke="rgba(154,96,80,0.2)" stroke-width="1"/>
+          </svg>
+        </div>
+        <div class="cycle-content">
+          <div class="section-eyebrow">Cycle Syncing</div>
+          <h2 class="section-title">Live in tune with your four phases.</h2>
+          <p class="section-lead" style="max-width:28rem">Lunara maps the rhythm of your hormones to gentle, personalized guidance so every day feels less like a mystery.</p>
+          <div class="phase-list">
+            <div class="phase-item">
+              <div class="phase-dot menstrual"></div>
+              <div class="phase-info">
+                <div class="phase-header"><h3>Menstrual</h3><span class="phase-days">Day 1–5</span></div>
+                <div class="phase-note">Rest, reflect, gentle movement.</div>
+              </div>
+            </div>
+            <div class="phase-item">
+              <div class="phase-dot follicular"></div>
+              <div class="phase-info">
+                <div class="phase-header"><h3>Follicular</h3><span class="phase-days">Day 6–13</span></div>
+                <div class="phase-note">Rising energy, new ideas, strength.</div>
+              </div>
+            </div>
+            <div class="phase-item">
+              <div class="phase-dot ovulatory"></div>
+              <div class="phase-info">
+                <div class="phase-header"><h3>Ovulatory</h3><span class="phase-days">Day 14–16</span></div>
+                <div class="phase-note">Peak energy, connection, confidence.</div>
+              </div>
+            </div>
+            <div class="phase-item">
+              <div class="phase-dot luteal"></div>
+              <div class="phase-info">
+                <div class="phase-header"><h3>Luteal</h3><span class="phase-days">Day 17–28</span></div>
+                <div class="phase-note">Wind down, nourish, slow productivity.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Testimonials ── -->
+  <section class="page-section testimonials-section">
+    <div class="section-inner">
+      <div style="max-width:40rem">
+        <div class="section-eyebrow">Loved early</div>
+        <h2 class="section-title">Words from our first community.</h2>
+      </div>
+      <div class="testimonials-grid">
+        <figure class="testimonial-card">
+          <blockquote class="testimonial-quote">"It's the first health app that feels like it was made by someone who actually listens."</blockquote>
+          <figcaption class="testimonial-author">
+            <div class="author-avatar"></div>
+            <div><div class="author-name">Maya, 27</div><div class="author-role">Designer</div></div>
+          </figcaption>
+        </figure>
+        <figure class="testimonial-card">
+          <blockquote class="testimonial-quote">"I finally understand why I feel the way I feel. It's like therapy meets biology."</blockquote>
+          <figcaption class="testimonial-author">
+            <div class="author-avatar"></div>
+            <div><div class="author-name">Léa, 31</div><div class="author-role">Founder</div></div>
+          </figcaption>
+        </figure>
+        <figure class="testimonial-card">
+          <blockquote class="testimonial-quote">"The AI is shockingly thoughtful. Calm, warm, never clinical."</blockquote>
+          <figcaption class="testimonial-author">
+            <div class="author-avatar"></div>
+            <div><div class="author-name">Sofia, 24</div><div class="author-role">Student</div></div>
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Waitlist ── -->
+  <section id="waitlist" class="page-section">
+    <div class="waitlist-inner">
+      <div class="waitlist-box">
+        <div class="waitlist-aurora"></div>
+        <div class="waitlist-content">
+          <h2>Begin the season of understanding.</h2>
+          <p>Join the waitlist for early access and founding-member pricing.</p>
+          <form class="waitlist-form" id="waitlistForm">
+            <input class="waitlist-input" type="email" required placeholder="your@email.com" />
+            <button class="waitlist-btn" type="submit">Join waitlist</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FAQ ── -->
+  <section id="faq" class="page-section">
+    <div class="faq-inner">
+      <div style="text-align:center">
+        <div class="section-eyebrow">FAQ</div>
+        <h2 class="section-title">Questions, gently answered.</h2>
+      </div>
+      <div class="faq-list">
+        <details>
+          <summary><span class="faq-q">Is Lunara a medical app?</span><span class="faq-icon">+</span></summary>
+          <p class="faq-a">No. Lunara is an educational and lifestyle companion. For any medical concern, please consult a qualified healthcare professional.</p>
+        </details>
+        <details>
+          <summary><span class="faq-q">Is my data private?</span><span class="faq-icon">+</span></summary>
+          <p class="faq-a">Your data is encrypted and never sold. You control what is shared, including partner insights, which are fully optional.</p>
+        </details>
+        <details>
+          <summary><span class="faq-q">Does it work without a regular cycle?</span><span class="faq-icon">+</span></summary>
+          <p class="faq-a">Yes. Lunara adapts to irregular cycles, hormonal contraception, PCOS, perimenopause and more.</p>
+        </details>
+        <details>
+          <summary><span class="faq-q">When is the app launching?</span><span class="faq-icon">+</span></summary>
+          <p class="faq-a">We are rolling out access gradually. Join the waitlist for early invites and founding-member pricing.</p>
+        </details>
+        <details>
+          <summary><span class="faq-q">Where can I learn more about specific health conditions?</span><span class="faq-icon">+</span></summary>
+          <p class="faq-a">Our <a href="health-library.html" style="color:var(--clay)">Health Library</a> covers eight conditions in depth, from PCOS and endometriosis to thyroid health and menopause, with science-backed information and questions to bring to your doctor.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Footer ── -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-logo">
+        <span class="footer-logo-dot"></span>
+        <span class="footer-logo-name">Lunara</span>
+      </div>
+      <p>© 2026 Lunara. Made with care.</p>
+      <div class="footer-links">
+        <a data-modal="modalPrivacy">Privacy</a>
+        <a data-modal="modalTerms">Terms</a>
+        <a href="health-library.html">Health Library</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ── Cookie Banner ── -->
+  <div class="cookie-banner" id="cookieBanner">
+    <p>We use essential cookies to keep Lunara working. We do not track or sell your data. Read our <a data-modal="modalPrivacy">Privacy Policy</a> to learn more.</p>
+    <div class="cookie-banner-actions">
+      <button class="cookie-btn-accept" id="cookieAccept">Accept</button>
+      <button class="cookie-btn-decline" id="cookieDecline">Decline</button>
+    </div>
+  </div>
+
+  <!-- ── Privacy Modal ── -->
+  <div class="modal-backdrop" id="modalPrivacy">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 class="modal-title">Privacy Policy</h2>
+        <button class="modal-close" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-content">
+        <h3>Your data is yours</h3>
+        <p>Lunara is built on the belief that health data is deeply personal. We collect only what is needed to provide the service, and we never sell or share your data with third parties for advertising.</p>
+        <h3>What we collect</h3>
+        <p>We collect the information you provide directly, such as your email address when you join the waitlist and any cycle or health data you enter within the app. We also collect basic usage data to understand how the app is being used so we can improve it.</p>
+        <h3>How we use it</h3>
+        <p>Your health data is used solely to power your personal experience within Lunara. It is never used to train AI models without your explicit consent, and it is never shared with employers, insurers, or other third parties.</p>
+        <h3>Cookies</h3>
+        <p>We use essential cookies that are necessary for the app to function. We do not use tracking or advertising cookies.</p>
+        <h3>Your rights</h3>
+        <p>You have the right to access, correct, or delete your data at any time. To exercise these rights, contact us through the app or at our support email.</p>
+        <h3>Contact</h3>
+        <p>Questions about this policy can be sent to our team through the contact link in the app.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Terms Modal ── -->
+  <div class="modal-backdrop" id="modalTerms">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 class="modal-title">Terms of Use</h2>
+        <button class="modal-close" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-content">
+        <h3>Educational use only</h3>
+        <p>Lunara is an educational and lifestyle app. It is not a medical device and is not intended to diagnose, treat, cure, or prevent any disease or medical condition. Always consult a qualified healthcare provider for medical decisions.</p>
+        <h3>Your account</h3>
+        <p>You are responsible for keeping your login credentials secure. Lunara is intended for personal use only. You must be 16 or older to create an account.</p>
+        <h3>Content accuracy</h3>
+        <p>We work hard to ensure the information in Lunara is accurate and up to date. However, health research evolves and content should not be treated as medical advice. We update our content regularly to reflect current evidence.</p>
+        <h3>Acceptable use</h3>
+        <p>You agree not to misuse the app, attempt to access other users' data, or use the app in any way that could harm others. We reserve the right to suspend accounts that violate these terms.</p>
+        <h3>Changes to these terms</h3>
+        <p>We may update these terms as the app evolves. We will notify you of significant changes. Continued use after changes are posted means you accept the updated terms.</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="lunara.js"></script>
+  <script>
+    // Waitlist form
+    document.getElementById('waitlistForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const content = this.parentElement;
+      this.style.display = 'none';
+      const msg = document.createElement('p');
+      msg.className = 'waitlist-success';
+      msg.textContent = 'Thank you. We\'ll be in touch soon. 🌙';
+      content.appendChild(msg);
+    });
+  </script>
+</body>
+</html>
