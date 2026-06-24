@@ -3,7 +3,7 @@
  * Source of truth: localStorage > browser language > 'en'
  */
 
-export type Lang = "de" | "en";
+export type Lang = "de" | "en" | "fr";
 
 const STORAGE_KEY = "lunara_language";
 
@@ -12,10 +12,11 @@ export function getLanguage(): Lang {
   if (typeof window === "undefined") return "en";
 
   const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored === "de" || stored === "en") return stored;
+  if (stored === "de" || stored === "en" || stored === "fr") return stored as Lang;
 
   const browserLang = navigator.language.toLowerCase();
   if (browserLang.startsWith("de")) return "de";
+  if (browserLang.startsWith("fr")) return "fr";
 
   return "en";
 }

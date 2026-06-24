@@ -10,28 +10,53 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as PublicRouteImport } from './routes/_public'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as PublicIndexRouteImport } from './routes/_public/index'
+import { Route as PublicLibraryRouteImport } from './routes/_public/library'
+import { Route as PublicCycleRouteImport } from './routes/_public/cycle'
+import { Route as PublicAiRouteImport } from './routes/_public/ai'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app/index'
 import { Route as AuthenticatedAppSettingsRouteImport } from './routes/_authenticated/app/settings'
+import { Route as AuthenticatedAppLogRouteImport } from './routes/_authenticated/app/log'
+import { Route as AuthenticatedAppLibraryRouteImport } from './routes/_authenticated/app/library'
 import { Route as AuthenticatedAppCycleRouteImport } from './routes/_authenticated/app/cycle'
-import { Route as AuthenticatedAppAssistantRouteImport } from './routes/_authenticated/app/assistant'
+import { Route as AuthenticatedAppChatRouteImport } from './routes/_authenticated/app/chat'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PublicRoute = PublicRouteImport.update({
+  id: '/_public',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
+const PublicIndexRoute = PublicIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicLibraryRoute = PublicLibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicCycleRoute = PublicCycleRouteImport.update({
+  id: '/cycle',
+  path: '/cycle',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicAiRoute = PublicAiRouteImport.update({
+  id: '/ai',
+  path: '/ai',
+  getParentRoute: () => PublicRoute,
 } as any)
 const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   id: '/onboarding',
@@ -54,46 +79,71 @@ const AuthenticatedAppSettingsRoute =
     path: '/settings',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppLogRoute = AuthenticatedAppLogRouteImport.update({
+  id: '/log',
+  path: '/log',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppLibraryRoute = AuthenticatedAppLibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppCycleRoute = AuthenticatedAppCycleRouteImport.update({
   id: '/cycle',
   path: '/cycle',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
-const AuthenticatedAppAssistantRoute =
-  AuthenticatedAppAssistantRouteImport.update({
-    id: '/assistant',
-    path: '/assistant',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
+const AuthenticatedAppChatRoute = AuthenticatedAppChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof PublicIndexRoute
   '/auth': typeof AuthRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/onboarding': typeof AuthenticatedOnboardingRoute
-  '/app/assistant': typeof AuthenticatedAppAssistantRoute
+  '/ai': typeof PublicAiRoute
+  '/cycle': typeof PublicCycleRoute
+  '/library': typeof PublicLibraryRoute
+  '/app/chat': typeof AuthenticatedAppChatRoute
   '/app/cycle': typeof AuthenticatedAppCycleRoute
+  '/app/library': typeof AuthenticatedAppLibraryRoute
+  '/app/log': typeof AuthenticatedAppLogRoute
   '/app/settings': typeof AuthenticatedAppSettingsRoute
   '/app/': typeof AuthenticatedAppIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/': typeof PublicIndexRoute
   '/auth': typeof AuthRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
-  '/app/assistant': typeof AuthenticatedAppAssistantRoute
+  '/ai': typeof PublicAiRoute
+  '/cycle': typeof PublicCycleRoute
+  '/library': typeof PublicLibraryRoute
+  '/app/chat': typeof AuthenticatedAppChatRoute
   '/app/cycle': typeof AuthenticatedAppCycleRoute
+  '/app/library': typeof AuthenticatedAppLibraryRoute
+  '/app/log': typeof AuthenticatedAppLogRoute
   '/app/settings': typeof AuthenticatedAppSettingsRoute
   '/app': typeof AuthenticatedAppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/_public': typeof PublicRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
-  '/_authenticated/app/assistant': typeof AuthenticatedAppAssistantRoute
+  '/_public/ai': typeof PublicAiRoute
+  '/_public/cycle': typeof PublicCycleRoute
+  '/_public/library': typeof PublicLibraryRoute
+  '/_public/': typeof PublicIndexRoute
+  '/_authenticated/app/chat': typeof AuthenticatedAppChatRoute
   '/_authenticated/app/cycle': typeof AuthenticatedAppCycleRoute
+  '/_authenticated/app/library': typeof AuthenticatedAppLibraryRoute
+  '/_authenticated/app/log': typeof AuthenticatedAppLogRoute
   '/_authenticated/app/settings': typeof AuthenticatedAppSettingsRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
 }
@@ -104,8 +154,13 @@ export interface FileRouteTypes {
     | '/auth'
     | '/app'
     | '/onboarding'
-    | '/app/assistant'
+    | '/ai'
+    | '/cycle'
+    | '/library'
+    | '/app/chat'
     | '/app/cycle'
+    | '/app/library'
+    | '/app/log'
     | '/app/settings'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
@@ -113,26 +168,37 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/onboarding'
-    | '/app/assistant'
+    | '/ai'
+    | '/cycle'
+    | '/library'
+    | '/app/chat'
     | '/app/cycle'
+    | '/app/library'
+    | '/app/log'
     | '/app/settings'
     | '/app'
   id:
     | '__root__'
-    | '/'
     | '/_authenticated'
+    | '/_public'
     | '/auth'
     | '/_authenticated/app'
     | '/_authenticated/onboarding'
-    | '/_authenticated/app/assistant'
+    | '/_public/ai'
+    | '/_public/cycle'
+    | '/_public/library'
+    | '/_public/'
+    | '/_authenticated/app/chat'
     | '/_authenticated/app/cycle'
+    | '/_authenticated/app/library'
+    | '/_authenticated/app/log'
     | '/_authenticated/app/settings'
     | '/_authenticated/app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  PublicRoute: typeof PublicRouteWithChildren
   AuthRoute: typeof AuthRoute
 }
 
@@ -145,6 +211,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_public': {
+      id: '/_public'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof PublicRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
@@ -152,12 +225,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
+    '/_public/': {
+      id: '/_public/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof PublicIndexRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/library': {
+      id: '/_public/library'
+      path: '/library'
+      fullPath: '/library'
+      preLoaderRoute: typeof PublicLibraryRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/cycle': {
+      id: '/_public/cycle'
+      path: '/cycle'
+      fullPath: '/cycle'
+      preLoaderRoute: typeof PublicCycleRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/ai': {
+      id: '/_public/ai'
+      path: '/ai'
+      fullPath: '/ai'
+      preLoaderRoute: typeof PublicAiRouteImport
+      parentRoute: typeof PublicRoute
     }
     '/_authenticated/onboarding': {
       id: '/_authenticated/onboarding'
@@ -187,6 +281,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppSettingsRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/log': {
+      id: '/_authenticated/app/log'
+      path: '/log'
+      fullPath: '/app/log'
+      preLoaderRoute: typeof AuthenticatedAppLogRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/library': {
+      id: '/_authenticated/app/library'
+      path: '/library'
+      fullPath: '/app/library'
+      preLoaderRoute: typeof AuthenticatedAppLibraryRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/cycle': {
       id: '/_authenticated/app/cycle'
       path: '/cycle'
@@ -194,26 +302,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppCycleRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
-    '/_authenticated/app/assistant': {
-      id: '/_authenticated/app/assistant'
-      path: '/assistant'
-      fullPath: '/app/assistant'
-      preLoaderRoute: typeof AuthenticatedAppAssistantRouteImport
+    '/_authenticated/app/chat': {
+      id: '/_authenticated/app/chat'
+      path: '/chat'
+      fullPath: '/app/chat'
+      preLoaderRoute: typeof AuthenticatedAppChatRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
   }
 }
 
 interface AuthenticatedAppRouteChildren {
-  AuthenticatedAppAssistantRoute: typeof AuthenticatedAppAssistantRoute
+  AuthenticatedAppChatRoute: typeof AuthenticatedAppChatRoute
   AuthenticatedAppCycleRoute: typeof AuthenticatedAppCycleRoute
+  AuthenticatedAppLibraryRoute: typeof AuthenticatedAppLibraryRoute
+  AuthenticatedAppLogRoute: typeof AuthenticatedAppLogRoute
   AuthenticatedAppSettingsRoute: typeof AuthenticatedAppSettingsRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
-  AuthenticatedAppAssistantRoute: AuthenticatedAppAssistantRoute,
+  AuthenticatedAppChatRoute: AuthenticatedAppChatRoute,
   AuthenticatedAppCycleRoute: AuthenticatedAppCycleRoute,
+  AuthenticatedAppLibraryRoute: AuthenticatedAppLibraryRoute,
+  AuthenticatedAppLogRoute: AuthenticatedAppLogRoute,
   AuthenticatedAppSettingsRoute: AuthenticatedAppSettingsRoute,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
 }
@@ -235,9 +347,26 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface PublicRouteChildren {
+  PublicAiRoute: typeof PublicAiRoute
+  PublicCycleRoute: typeof PublicCycleRoute
+  PublicLibraryRoute: typeof PublicLibraryRoute
+  PublicIndexRoute: typeof PublicIndexRoute
+}
+
+const PublicRouteChildren: PublicRouteChildren = {
+  PublicAiRoute: PublicAiRoute,
+  PublicCycleRoute: PublicCycleRoute,
+  PublicLibraryRoute: PublicLibraryRoute,
+  PublicIndexRoute: PublicIndexRoute,
+}
+
+const PublicRouteWithChildren =
+  PublicRoute._addFileChildren(PublicRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  PublicRoute: PublicRouteWithChildren,
   AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport

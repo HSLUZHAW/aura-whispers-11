@@ -1,21 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { getCycleInfo } from "@/lib/cycle";
+import { askLunara } from "@/lib/ai.functions";
 
 export const Route = createFileRoute("/_authenticated/app/chat")({
   head: () => ({ meta: [{ title: "Lunara — Chat" }] }),
   component: ChatPage,
 });
 
-const SYSTEM_PROMPT =
-  "You are Lunara, a warm and knowledgeable AI companion specialising exclusively in women's health, hormones, the menstrual cycle, emotional wellbeing, and lifestyle topics related to female health. You speak in a calm, empathetic, and human tone. You never use em dashes. You write in clear, warm prose without bullet point lists unless absolutely necessary. You never sound clinical or robotic. If someone asks something outside your area such as mathematics, coding, politics, or anything unrelated to women's health, respond warmly: That is a little outside my world. I am here for everything around your cycle, hormones, mood, and wellbeing. What would you like to explore there? You never diagnose. You never recommend specific medications by name. You always encourage speaking with a healthcare professional for personal medical decisions.";
-
 const SUGGESTIONS = [
   "What foods help with PMS?",
-  "How long does it last?",
-  "Is this PMDD?",
+  "Why am I so tired right now?",
+  "Is this normal for my phase?",
 ];
 
 type Msg = {
@@ -46,14 +45,14 @@ function LunaraText({ content }: { content: string }) {
       </span>
     );
   }
-  const first = content.slice(0, spaceIdx);
-  const rest = content.slice(spaceIdx);
   return (
     <span>
       <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontStyle: "italic", fontWeight: 300, fontSize: "13px" }}>
-        {first}
+        {content.slice(0, spaceIdx)}
       </span>
-      <span style={{ fontFamily: "'Inter', sans-serif", fontSize: "12px", lineHeight: "1.6" }}>{rest}</span>
+      <span style={{ fontFamily: "'Inter', sans-serif", fontSize: "12px", lineHeight: "1.6" }}>
+        {content.slice(spaceIdx)}
+      </span>
     </span>
   );
 }
@@ -61,33 +60,32 @@ function LunaraText({ content }: { content: string }) {
 function TypingIndicator() {
   return (
     <div style={{ display: "flex", justifyContent: "flex-start" }}>
-      <div>
-        <div style={{
-          background: "#ffffff",
-          border: "0.5px solid var(--color-border)",
-          borderRadius: "18px",
-          borderBottomLeftRadius: "5px",
-          padding: "12px 16px",
-          display: "flex",
-          alignItems: "center",
-          gap: "5px",
-        }}>
-          {[0, 1, 2].map((i) => (
-            <span key={i} style={{
-              width: "4px", height: "4px", borderRadius: "50%",
-              background: "var(--color-muted-foreground)",
-              display: "inline-block",
-              animation: `lunaraTyping 1.2s ease-in-out infinite`,
-              animationDelay: `${i * 0.2}s`,
-            }} />
-          ))}
-        </div>
+      <div style={{
+        background: "#ffffff",
+        border: "0.5px solid var(--color-border)",
+        borderRadius: "18px",
+        borderBottomLeftRadius: "5px",
+        padding: "12px 16px",
+        display: "flex",
+        alignItems: "center",
+        gap: "5px",
+      }}>
+        {[0, 1, 2].map((i) => (
+          <span key={i} style={{
+            width: "4px", height: "4px", borderRadius: "50%",
+            background: "var(--color-muted-foreground)",
+            display: "inline-block",
+            animation: `lunaraTyping 1.2s ease-in-out infinite`,
+            animationDelay: `${i * 0.2}s`,
+          }} />
+        ))}
       </div>
     </div>
   );
 }
 
 function ChatPage() {
+  const ask = useServerFn(askLunara);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -101,11 +99,34 @@ function ChatPage() {
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
-      const { data } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
+      const { data } = await supabase
+        .from("profiles")
+        .select("last_period_date, cycle_length, period_length, display_name")
+        .eq("id", user.id)
+        .maybeSingle();
       return data;
     },
   });
 
+  // Load last 20 persisted messages
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from("ai_messages")
+        .select("role,content")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: true })
+        .limit(20);
+      if (data && data.length > 0) {
+        setMessages(data.map((m) => ({ ...m, time: "" }) as Msg));
+        greetingAdded.current = true;
+      }
+    })();
+  }, []);
+
+  // Add greeting only for first-time users
   useEffect(() => {
     if (greetingAdded.current) return;
     if (profile === undefined) return;
@@ -125,42 +146,51 @@ function ChatPage() {
   const send = useCallback(async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || loading) return;
+
     const userMsg: Msg = { role: "user", content: trimmed, time: nowTime() };
-    const next = [...messages, userMsg];
-    setMessages(next);
+    // Capture current messages in a local var so the history slice is consistent
+    const currentMessages = messages;
+    setMessages((m) => [...m, userMsg]);
     setInput("");
     setShowSuggestions(false);
     setLoading(true);
+
+    const cycle = profile
+      ? getCycleInfo(profile.last_period_date, profile.cycle_length ?? 28, profile.period_length ?? 5)
+      : null;
+
     try {
-      const key = import.meta.env.VITE_ANTHROPIC_API_KEY;
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": key,
-          "anthropic-version": "2023-06-01",
-          "anthropic-dangerous-direct-browser-access": "true",
+      const { data: { user } } = await supabase.auth.getUser();
+      // Send last 10 turns as history (rolling window — keeps cost + context in check)
+      const history = currentMessages
+        .filter((m) => m.role === "user" || m.role === "assistant")
+        .slice(-10)
+        .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
+
+      const { reply } = await ask({
+        data: {
+          message: trimmed,
+          history,
+          context: cycle ? { phase: cycle.phase, cycleDay: cycle.day } : undefined,
         },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1000,
-          system: SYSTEM_PROMPT,
-          messages: next.map((m) => ({ role: m.role, content: m.content })),
-        }),
       });
-      if (!res.ok) throw new Error();
-      const json = await res.json();
-      const reply = json.content?.[0]?.text ?? "Something went quiet on my end. Give me a moment and try again.";
-      setMessages((m) => [...m, { role: "assistant", content: reply, time: nowTime() }]);
-    } catch {
-      setMessages((m) => [
-        ...m,
-        { role: "assistant", content: "Something went quiet on my end. Give me a moment and try again.", time: nowTime() },
-      ]);
+
+      const aiMsg: Msg = { role: "assistant", content: reply, time: nowTime() };
+      setMessages((m) => [...m, aiMsg]);
+
+      if (user) {
+        await supabase.from("ai_messages").insert([
+          { user_id: user.id, role: "user", content: trimmed },
+          { user_id: user.id, role: "assistant", content: reply },
+        ]);
+      }
+    } catch (e) {
+      const errorText = e instanceof Error ? e.message : "Something went quiet on my end. Give me a moment and try again.";
+      setMessages((m) => [...m, { role: "assistant", content: errorText, time: nowTime() }]);
     } finally {
       setLoading(false);
     }
-  }, [messages, loading]);
+  }, [messages, loading, profile, ask]);
 
   return (
     <>
@@ -176,7 +206,7 @@ function ChatPage() {
           display: "flex",
           flexDirection: "column",
           margin: "-24px -20px",
-          height: "calc(100dvh - 60px)",
+          height: "calc(100dvh - 64px)",
         }}
         className="md:m-0 md:h-[calc(100dvh-40px)]"
       >
@@ -200,28 +230,14 @@ function ChatPage() {
               fontFamily: "'Cormorant Garamond', Georgia, serif",
               fontSize: "20px",
               fontWeight: 300,
-              letterSpacing: "0.01em",
               color: "var(--color-foreground)",
               lineHeight: 1.2,
             }}>
               Lunara
             </div>
-            <div style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "5px",
-              marginTop: "2px",
-            }}>
-              <div style={{
-                width: "5px", height: "5px", borderRadius: "50%",
-                background: "#4ade80",
-                flexShrink: 0,
-              }} />
-              <span style={{
-                fontFamily: "'Inter', sans-serif",
-                fontSize: "10px",
-                color: "var(--color-muted-foreground)",
-              }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "5px", marginTop: "2px" }}>
+              <div style={{ width: "5px", height: "5px", borderRadius: "50%", background: "#4ade80", flexShrink: 0 }} />
+              <span style={{ fontFamily: "'Inter', sans-serif", fontSize: "10px", color: "var(--color-muted-foreground)" }}>
                 Here for you
               </span>
             </div>
@@ -256,24 +272,29 @@ function ChatPage() {
                   background: isUser ? "var(--color-primary)" : "#ffffff",
                   border: isUser ? "none" : "0.5px solid var(--color-border)",
                   color: isUser ? "#f5f0eb" : "var(--color-foreground)",
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: "12px",
-                  lineHeight: "1.6",
                   wordBreak: "break-word",
                   whiteSpace: "pre-wrap",
                 }}>
-                  {isUser ? msg.content : <LunaraText content={msg.content} />}
+                  {isUser ? (
+                    <span style={{ fontFamily: "'Inter', sans-serif", fontSize: "12px", lineHeight: "1.6" }}>
+                      {msg.content}
+                    </span>
+                  ) : (
+                    <LunaraText content={msg.content} />
+                  )}
                 </div>
-                <div style={{
-                  fontSize: "9px",
-                  color: "var(--color-muted-foreground)",
-                  marginTop: "3px",
-                  fontFamily: "'Inter', sans-serif",
-                  paddingLeft: isUser ? 0 : "2px",
-                  paddingRight: isUser ? "2px" : 0,
-                }}>
-                  {msg.time}
-                </div>
+                {msg.time && (
+                  <div style={{
+                    fontSize: "9px",
+                    color: "var(--color-muted-foreground)",
+                    marginTop: "3px",
+                    fontFamily: "'Inter', sans-serif",
+                    paddingLeft: isUser ? 0 : "2px",
+                    paddingRight: isUser ? "2px" : 0,
+                  }}>
+                    {msg.time}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -304,16 +325,7 @@ function ChatPage() {
                   fontFamily: "'Inter', sans-serif",
                   fontSize: "10px",
                   cursor: "pointer",
-                  transition: "border-color 0.15s, color 0.15s",
                   whiteSpace: "nowrap",
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--color-clay)";
-                  (e.currentTarget as HTMLButtonElement).style.color = "var(--color-foreground)";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--color-border)";
-                  (e.currentTarget as HTMLButtonElement).style.color = "var(--color-muted-foreground)";
                 }}
               >
                 {s}
@@ -341,6 +353,7 @@ function ChatPage() {
             }}
             placeholder="Ask Lunara anything..."
             disabled={loading}
+            aria-label="Message input"
             style={{
               flex: 1,
               padding: "9px 14px",
@@ -351,15 +364,13 @@ function ChatPage() {
               fontFamily: "'Inter', sans-serif",
               fontSize: "12px",
               outline: "none",
-              transition: "border-color 0.15s",
               minWidth: 0,
             }}
-            onFocus={(e) => (e.currentTarget.style.borderColor = "var(--color-ring)")}
-            onBlur={(e) => (e.currentTarget.style.borderColor = "var(--color-input)")}
           />
           <button
             onClick={() => send(input)}
             disabled={!input.trim() || loading}
+            aria-label="Send message"
             style={{
               width: "36px", height: "36px", borderRadius: "50%", border: "none",
               background: "var(--color-primary)",
@@ -367,16 +378,18 @@ function ChatPage() {
               display: "flex", alignItems: "center", justifyContent: "center",
               flexShrink: 0,
               cursor: "pointer",
-              transition: "opacity 0.15s",
               opacity: !input.trim() || loading ? 0.4 : 1,
             }}
-            aria-label="Send message"
           >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
               <path d="M7 11V3M7 3L3.5 6.5M7 3L10.5 6.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
         </div>
+
+        <p style={{ textAlign: "center", fontSize: "10px", color: "var(--color-muted-foreground)", padding: "4px 0 8px", background: "var(--color-card)" }}>
+          Lunara is not a doctor. For medical concerns please consult a healthcare professional.
+        </p>
       </div>
     </>
   );

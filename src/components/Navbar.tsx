@@ -11,7 +11,8 @@ export function Navbar() {
         <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
           <a href="#features" className="hover:text-foreground transition">Features</a>
           <a href="#cycle" className="hover:text-foreground transition">Cycle</a>
-          <a href="#education" className="hover:text-foreground transition">Hormones</a>
+          <a href="#education" className="hover:text-foreground transition">AI</a>
+          <a href="#library" className="hover:text-foreground transition">Library</a>
           <a href="#faq" className="hover:text-foreground transition">FAQ</a>
         </nav>
         <div className="flex items-center gap-3">

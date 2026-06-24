@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_authenticated/app/settings")({
 function SettingsPage() {
   const qc = useQueryClient();
   const navigate = useNavigate();
-  const [lang, setLangState] = useState<"de" | "en">("en");
+  const [lang, setLangState] = useState<"de" | "en" | "fr">("en");
   const t = getSettingsTranslations(lang);
 
   const { data: profile } = useQuery({
@@ -96,13 +96,14 @@ function SettingsPage() {
     }
   };
 
-  const handleLanguageChange = (newLang: "de" | "en") => {
+  const handleLanguageChange = (newLang: "de" | "en" | "fr") => {
     setLanguage(newLang);
     setLangState(newLang);
   };
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    qc.clear();
     navigate({ to: "/" });
   };
 
@@ -281,6 +282,16 @@ function SettingsPage() {
               }`}
             >
               {t.english}
+            </button>
+            <button
+              onClick={() => handleLanguageChange("fr")}
+              className={`flex-1 px-4 py-2.5 rounded-2xl text-sm font-medium transition ${
+                lang === "fr"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-background border border-border text-foreground hover:bg-secondary"
+              }`}
+            >
+              Français
             </button>
           </div>
         </Field>
